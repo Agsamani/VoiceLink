@@ -1,35 +1,37 @@
 const express = require("express");
-const { Pool } = require("pg");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
 
+const db = require("./db.js")
 const app = express();
 
-const dotenv = require("dotenv");
-dotenv.config();
-const { DATABASE_URL } = process.env;
-
-const pool = new Pool({
-  connectionString: DATABASE_URL
-});
-
-pool.connect()
-    .then(() => console.log('Connected to PostgreSQL'))
-    .catch(err => console.error('Connection error:', err));
+app.use(cors());
 
 app.get("/", (req, res) => {
   console.log("Hello there!");
   res.send("General Kenobi...");
 });
 
-app.get('/test-db', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM users');
-    res.json(result.rows);
-  } catch (err) {
-    console.error('error in testing db', err);
-    res.status(500).send('error in testing db');
-  }
+
+const server = http.createServer(app);
+const io = new Server(server, {cors: {
+  origin: "*", 
+  methods: ["GET", "POST"]
+}});
+
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  socket.on("voice", (data) => {
+      socket.emit("voice", data); // Send voice data to others
+  });
+
+  socket.on("disconnect", () => {
+      console.log("A user disconnected:", socket.id);
+  });
 });
 
-app.listen(3000, () => {
-  console.log('server running on port 3000');
+server.listen(3000, () => {
+  console.log('Server running on port 3000');
 });
