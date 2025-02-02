@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import io from 'socket.io-client';
+import PropTypes from 'prop-types';
 
-const VoiceChat = () => {
+const VoiceChat = ({ username, onLogout }) => {
     const [isTalking, setIsTalking] = useState(false);
     const mediaStreamRef = useRef(null);
     const mediaRecorderRef = useRef(null);
@@ -85,13 +86,34 @@ const VoiceChat = () => {
         setIsTalking(false);
     };
 
+    const handleLogout = async () => {
+        try {
+            await fetch("http://localhost:3000/logout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username }),
+            });
+
+            onLogout(); // Notify parent component
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
+
     return (
         <div>
             <h1>Live Voice Chat</h1>
+            <p>Logged in as: <strong>{username}</strong></p>
             <button onClick={startTalking} disabled={isTalking}>Start Talking</button>
             <button onClick={stopTalking} disabled={!isTalking}>Stop Talking</button>
+            <button onClick={handleLogout}>Logout</button>
         </div>
     );
+};
+
+VoiceChat.propTypes = {
+    username: PropTypes.string.isRequired,
+    onLogout: PropTypes.func.isRequired
 };
 
 export default VoiceChat;
