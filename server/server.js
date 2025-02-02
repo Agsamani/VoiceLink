@@ -13,7 +13,6 @@ app.get("/", (req, res) => {
   res.send("General Kenobi...");
 });
 
-
 const server = http.createServer(app);
 const io = new Server(server, {cors: {
   origin: "*", 
@@ -24,12 +23,13 @@ io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
   socket.on("voice", (data) => {
-      socket.emit("voice", data); // Send voice data to others
+    socket.broadcast.emit("voice", data); // Send voice data to others except sender
   });
 
   socket.on("disconnect", () => {
-      console.log("A user disconnected:", socket.id);
+    console.log("A user disconnected:", socket.id); // disconnect message
   });
+
 });
 
 server.listen(3000, () => {
