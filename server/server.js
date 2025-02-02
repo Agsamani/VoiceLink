@@ -19,7 +19,7 @@ app.post("/login", async (req, res) => {
   const { username } = req.body;
 
   if (!username) {
-    return res.status(400).json({ error: "Username is required" });
+    return res.status(400).json({ success: false, error: "Username is required" });
   }
 
   try {
@@ -30,9 +30,10 @@ app.post("/login", async (req, res) => {
     }
 
     console.log({ message: "User logged in", username });
+    res.json({ success: true }); // Send success response
   } catch (error) {
     console.error("Error logging in:", error);
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ success: false, error: "Database error" });
   }
 });
 
@@ -42,15 +43,16 @@ app.post("/logout", async (req, res) => {
   const { username } = req.body;
 
   if (!username) {
-    return res.status(400).json({ error: "Username is required" });
+    return res.status(400).json({ success: false, error: "Username is required" });
   }
 
   try {
     await db.none("DELETE FROM users WHERE username = $1", [username]);
     console.log({ message: "User logged out" });
+    res.json({ success: true }); // Send success response
   } catch (error) {
     console.error("Error logging out:", error);
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ success: false, error: "Database error" });
   }
 });
 

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import io from 'socket.io-client';
 import PropTypes from 'prop-types';
 
-const VoiceChat = ({ username, onLogout }) => {
+const VoiceChat = ({ username, setUsername }) => {
     const [isTalking, setIsTalking] = useState(false);
     const mediaStreamRef = useRef(null);
     const mediaRecorderRef = useRef(null);
@@ -88,13 +88,19 @@ const VoiceChat = ({ username, onLogout }) => {
 
     const handleLogout = async () => {
         try {
-            await fetch("http://localhost:3000/logout", {
+            const response = await fetch("http://localhost:3000/logout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username }),
             });
 
-            onLogout(); // Notify parent component
+            const data = await response.json();
+            if (response.ok && data.success) {
+                setUsername(null); // Navigate back to login
+            } else {
+                alert(data.error || "Logout failed");
+            }
+
         } catch (error) {
             console.error("Logout error:", error);
         }
@@ -113,7 +119,7 @@ const VoiceChat = ({ username, onLogout }) => {
 
 VoiceChat.propTypes = {
     username: PropTypes.string.isRequired,
-    onLogout: PropTypes.func.isRequired
+    setUsername: PropTypes.func.isRequired,
 };
 
 export default VoiceChat;
