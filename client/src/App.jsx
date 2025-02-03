@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import VoiceChat from './VoiceChat';
 import Login from './Login';
+import Channels from './Channels';
 
 function App() {
   const [username, setUsername] = useState(null);
@@ -8,7 +9,7 @@ function App() {
   return (
     <div className="App">
       {username ? (
-        <VoiceChat username={username} setUsername={setUsername} />
+        <Channels/>//<VoiceChat username={username} setUsername={setUsername} />
       ) : (
         <Login setUsername={setUsername} />
       )}

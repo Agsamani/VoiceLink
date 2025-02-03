@@ -7,14 +7,14 @@ const db = require("./db.js")
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded());
 
-// test root page
+
 app.get("/", (req, res) => {
   console.log("Hello there!");
   res.send("General Kenobi...");
 });
 
-// login API - adds user to the database
 app.post("/login", async (req, res) => {
   const { username } = req.body;
 
@@ -30,7 +30,7 @@ app.post("/login", async (req, res) => {
     }
 
     console.log({ message: "User logged in", username });
-    res.json({ success: true }); // Send success response
+    res.json({ success: true }); 
   } catch (error) {
     console.error("Error logging in:", error);
     res.status(500).json({ success: false, error: "Database error" });
@@ -38,7 +38,6 @@ app.post("/login", async (req, res) => {
 });
 
 
-// logout API - removes user from the database
 app.post("/logout", async (req, res) => {
   const { username } = req.body;
 
@@ -49,13 +48,58 @@ app.post("/logout", async (req, res) => {
   try {
     await db.none("DELETE FROM users WHERE username = $1", [username]);
     console.log({ message: "User logged out" });
-    res.json({ success: true }); // Send success response
+    res.json({ success: true }); 
   } catch (error) {
     console.error("Error logging out:", error);
     res.status(500).json({ success: false, error: "Database error" });
   }
 });
 
+
+app.get("/channels", async (req, res) => {
+  try {
+    const channels = await db.any("SELECT * FROM channels");
+    console.log({ channels: channels });
+    res.json(channels); 
+  } catch (error) {
+    console.error("Error getting channels:", error);
+    res.status(500).json({ success: false, error: "Error getting channels" });
+  }
+})
+
+
+app.post("/channels", async (req, res) => {
+  data = req.body
+
+  try {
+    await db.none("INSERT INTO channels(name) VALUES($1)", [data.name]);
+    console.log("New channel inserted: " + data.name);
+    res.send({ success: true }); 
+  } catch (error) {
+    console.error("Error inserting channels:", error);
+    res.status(500).json({ success: false, error: "Error creating channel" });
+  }
+})
+
+
+app.delete("/channels/:channelId", async (req, res) => {
+  const { channelId } = req.params;
+
+  try {
+    const result = await db.result("DELETE FROM channels WHERE id = $1", [channelId]);
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ success: false, error: "Channel not found" });
+    } else {
+      console.log(`Channel deleted: ${channelId}`);
+      res.json({ success: true });
+    }
+  } catch (error) {
+    console.error("Error deleting channel:", error);
+  }
+});
+
+// Socket initialization
 const server = http.createServer(app);
 const io = new Server(server, {cors: {
   origin: "*", 
