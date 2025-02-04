@@ -11,7 +11,9 @@ const Home = () => {
   const [selectedChannel, setSelectedChannel] = useState(-1);
   const prevChannelRef = useRef(-1);
   const [channelsUpdated, setChannelsUpdated] = useState(false)
+  const [usersUpdated, setUsersUpdated] = useState(false)
 
+  const userid = localStorage.getItem("userid")
 
   const logout = async () => {
     if (!username) {
@@ -37,12 +39,12 @@ const Home = () => {
     }
   };
 
-  const onChannelCLick = (channelId) => {
+  const onChannelCLick = async (channelId) => {
     prevChannelRef.current = selectedChannel;
     setSelectedChannel(channelId);
   }
 
-  const onChannelLeft = (channelId) => {
+  const onChannelLeft = async (channelId) => {
     setSelectedChannel(-1);
     prevChannelRef.current = -1;
   }
@@ -54,6 +56,7 @@ const Home = () => {
   const onChannelDelete = (channelId) => {
     socketRef.current.emit("delete-channel", channelId);
   } 
+
   
 
   useEffect(() => {
@@ -75,6 +78,9 @@ const Home = () => {
       setChannelsUpdated(true);
     });
 
+    socketRef.current.on("users-updated", () => {
+      setUsersUpdated(true);
+    });
   
     return () => {
       socketRef.current.disconnect();
@@ -90,7 +96,10 @@ const Home = () => {
                 onChannelCreate = {onChannelCreate} 
                 onChannelDelete = {onChannelDelete} 
                 channelsUpdated={channelsUpdated} 
-                setChannelsUpdated={setChannelsUpdated}/>
+                setChannelsUpdated={setChannelsUpdated}
+                usersUpdated={usersUpdated}
+                setUsersUpdated={setUsersUpdated}
+                />
       <Channel 
                 selectedChannel={selectedChannel} 
                 prevChannelRef={prevChannelRef} 

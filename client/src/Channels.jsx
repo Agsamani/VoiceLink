@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ChannelUsers from "./ChannelUsers";
 
-const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUpdated, setChannelsUpdated }) => {
+const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUpdated, setChannelsUpdated, usersUpdated, setUsersUpdated }) => {
   const [channels, setChannels] = useState([]);
   const [newChannelName, setNewChannelName] = useState("");
   const navigate = useNavigate();
@@ -83,6 +84,7 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
             {channel.creator == userid && (
               <button onClick={() => deleteChannel(channel.id)}>Delete</button>
             )}
+            <ChannelUsers channelId={channel.id} usersUpdated={usersUpdated} setUsersUpdated={setUsersUpdated}/>
           </li>
         ))}
       </ul>

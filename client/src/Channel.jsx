@@ -7,6 +7,9 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   const localStreamRef = useRef(null);
   const peersRef = useRef({});
 
+  const username = localStorage.getItem("username")
+  const userid = localStorage.getItem("userid")
+
 
   useEffect(() => {
     const username = localStorage.getItem("username");
@@ -41,7 +44,26 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   const onJoinChannel = async (channelId) => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     localStreamRef.current = stream;
+
+    const sendJoinReq = async (channelId) => {
+      try {
+        const response = await fetch(`http://localhost:3000/channel/${channelId}/join`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userid })
+        });
+        if (!response.ok) {
+          throw new Error("Failed to join channel");
+        }
+      } catch (error) {
+        console.error("Error joining channel:", error);
+      }
+    }
+
+    await sendJoinReq(channelId);
+
     socketRef.current.emit("join-channel", channelId);
+
   };
 
   const handleUserJoined = async (userId) => {
@@ -104,13 +126,34 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     }
   };
 
-  const onLeaveChannel = (channelId) => {
+  const onLeaveChannel = async (channelId, gotDeleted = false) => {
     Object.values(peersRef.current).forEach((peer) => peer.close());
     peersRef.current = {};
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
     }
+
+    const sendLeaveReq = async (channelId) => {
+      try {
+        const response = await fetch(`http://localhost:3000/channel/${channelId}/leave`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userid })
+        });
+        if (!response.ok) {
+          throw new Error("Failed to leave channel");
+        }
+      } catch (error) {
+        console.error("Error leaving channel:", error);
+      }
+    }
+
+    if(!gotDeleted) {
+      await sendLeaveReq(channelId);
+    }
+
     socketRef.current.emit("leave-channel", channelId);
+
   };
 
   const handleUserLeft = (userId) => {
@@ -124,7 +167,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     setChannelsUpdated(true);
 
     if (channelId == selectedChannel) {
-      onLeaveChannel(selectedChannel);
+      onLeaveChannel(selectedChannel, true);
       onChannelLeft(selectedChannel);
     }
     

@@ -13,10 +13,6 @@ router.get("/channels/:id/users", async (req, res) => {
         [id]
     );
 
-    if (users.length === 0) {
-        return res.status(404).json({ error: "No users found in this channel" });
-    }
-
     res.json(users);
     } catch (error) {
         console.error("Error getting users in channel:", error);

@@ -34,12 +34,14 @@ io.on('connection', (socket) => {
     socket.join(channelId);
     console.log(`${socket.id} joined channel: ${channelId}`);
     socket.broadcast.to(channelId).emit('user-joined', socket.id);
+    io.emit('users-updated');
   });
 
   socket.on('leave-channel', (channelId) => {
     socket.leave(channelId);
     console.log(`${socket.id} left channel: ${channelId}`);
     socket.broadcast.to(channelId).emit('user-left', socket.id);
+    io.emit('users-updated');
   });
 
   socket.on('signal', (data) => {
