@@ -36,13 +36,13 @@ router.post("/channels", async (req, res) => {
 // Delete a channel
 router.delete("/channels/:id", async (req, res) => {
     const { id } = req.params;
-    const { username } = req.body;
+    const { user_id } = req.body;
 
     try {
         const channel = await db.oneOrNone("SELECT * FROM channels WHERE id = $1", [id]);
 
         if (!channel) return res.status(404).json({ error: "Channel not found" });
-        if (channel.creator !== username) return res.status(403).json({ error: "Not authorized" });
+        if (channel.creator !== user_id) return res.status(403).json({ error: "Not authorized" });
 
         await db.none("DELETE FROM channels WHERE id = $1", [id]);
         res.json({ message: "Channel deleted" });

@@ -10,7 +10,7 @@ CREATE TABLE users (
 CREATE TABLE channels (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
-    creator VARCHAR(255) REFERENCES users(username) ON DELETE CASCADE
+    creator INT REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Join table to track user participation in channels - each user only one channel
