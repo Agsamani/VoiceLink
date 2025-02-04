@@ -10,6 +10,7 @@ const Home = () => {
   const [username, setUsername] = useState("");
   const [selectedChannel, setSelectedChannel] = useState(-1);
   const prevChannelRef = useRef(-1);
+  const [channelsUpdated, setChannelsUpdated] = useState(false)
 
 
   const logout = async () => {
@@ -44,6 +45,14 @@ const Home = () => {
     setSelectedChannel(-1);
     prevChannelRef.current = -1;
   }
+
+  const onChannelCreate = () => {
+    socketRef.current.emit("create-channel");
+  }
+
+  const onChannelDelete = (channelId) => {
+    socketRef.current.emit("delete-channel", channelId);
+  } 
   
 
   useEffect(() => {
@@ -56,6 +65,15 @@ const Home = () => {
   
     setUsername(storedUsername);
     socketRef.current = io("http://localhost:3000");
+
+    socketRef.current.on("channel-created", () => {
+        setChannelsUpdated(true);
+    })
+
+    socketRef.current.on("channel-deleted", () => {
+      setChannelsUpdated(true);
+    });
+
   
     return () => {
       socketRef.current.disconnect();
@@ -66,8 +84,19 @@ const Home = () => {
     <div>
       <h2>Welcome, {username}</h2>
       <button onClick={logout}>Logout</button>
-      <Channels username={username} onChannelCLick={onChannelCLick}/>
-      <Channel selectedChannel={selectedChannel} prevChannelRef={prevChannelRef} onChannelLeft={onChannelLeft} socketRef={socketRef}/>
+      <Channels username={username} 
+                onChannelCLick={onChannelCLick} 
+                onChannelCreate = {onChannelCreate} 
+                onChannelDelete = {onChannelDelete} 
+                channelsUpdated={channelsUpdated} 
+                setChannelsUpdated={setChannelsUpdated}/>
+      <Channel 
+                selectedChannel={selectedChannel} 
+                prevChannelRef={prevChannelRef} 
+                onChannelLeft={onChannelLeft} 
+                socketRef={socketRef} 
+                channelsUpdated={channelsUpdated} 
+                setChannelsUpdated={setChannelsUpdated}/>
     </div>
   );
 };

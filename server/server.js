@@ -161,6 +161,15 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('create-channel', () => {
+    io.emit('channel-created');
+  })
+
+  socket.on('delete-channel', (channelId) => {
+    io.emit('channel-deleted', channelId);
+  })
+
+
   socket.on('disconnect', () => {
     console.log('A user disconnected');
   });

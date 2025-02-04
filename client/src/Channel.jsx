@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import io from "socket.io-client";
 
-const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef }) => {
+const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, channelsUpdated, setChannelsUpdated }) => {
   const navigate = useNavigate();
   const localStreamRef = useRef(null);
   const peersRef = useRef({});
@@ -26,12 +26,15 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef }) 
     socketRef.current.on("user-joined", handleUserJoined);
     socketRef.current.on("signal", handleSignal);
     socketRef.current.on("user-left", handleUserLeft);
+    socketRef.current.on("channel-deleted", handleChannelDeletion);
 
     onJoinChannel(selectedChannel).catch(console.error)
     return () => {
       socketRef.current.off("user-joined", handleUserJoined);
       socketRef.current.off("signal", handleSignal);
       socketRef.current.off("user-left", handleUserLeft);
+      socketRef.current.off("channel-deleted", handleChannelDeletion);
+
     };
   }, [selectedChannel, navigate]);
 
@@ -116,6 +119,16 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef }) 
       delete peersRef.current[userId];
     }
   };
+
+  const handleChannelDeletion = (channelId) => {
+    setChannelsUpdated(true);
+
+    if (channelId == selectedChannel) {
+      onLeaveChannel(selectedChannel);
+      onChannelLeft(selectedChannel);
+    }
+    
+  }
 
   if (selectedChannel == -1) {
     return <div>Select a channel</div>

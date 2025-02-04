@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Channels = ({ username, onChannelCLick }) => {
+const Channels = ({ username, onChannelCLick, onChannelCreate, onChannelDelete, channelsUpdated, setChannelsUpdated }) => {
   const [channels, setChannels] = useState([]);
   const [newChannelName, setNewChannelName] = useState("");
   const navigate = useNavigate();
@@ -18,9 +18,9 @@ const Channels = ({ username, onChannelCLick }) => {
     };
 
     fetchChannels();
+    setChannelsUpdated(false)
 
-    return () => socket.close();
-  }, []);
+  }, [channelsUpdated]);
 
   const createChannel = async () => {
     if (!newChannelName.trim()) return alert("Channel name cannot be empty");
@@ -35,6 +35,8 @@ const Channels = ({ username, onChannelCLick }) => {
       if (!response.ok) throw new Error("Failed to create channel");
 
       setNewChannelName("");
+
+      onChannelCreate();
     } catch (error) {
       alert(error.message);
     }
@@ -54,6 +56,8 @@ const Channels = ({ username, onChannelCLick }) => {
       }
 
       setChannels(channels.filter((channel) => channel.id !== channelId));
+
+      onChannelDelete(channelId);
     } catch (error) {
       alert(error.message);
     }
