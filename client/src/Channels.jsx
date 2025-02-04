@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Channels = ({ username, onChannelCLick, onChannelCreate, onChannelDelete, channelsUpdated, setChannelsUpdated }) => {
+const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUpdated, setChannelsUpdated }) => {
   const [channels, setChannels] = useState([]);
   const [newChannelName, setNewChannelName] = useState("");
   const navigate = useNavigate();
+  const username = localStorage.getItem("username")
+  const userid = localStorage.getItem("userid")
 
   useEffect(() => {
     const fetchChannels = async () => {
@@ -24,12 +26,11 @@ const Channels = ({ username, onChannelCLick, onChannelCreate, onChannelDelete, 
 
   const createChannel = async () => {
     if (!newChannelName.trim()) return alert("Channel name cannot be empty");
-
     try {
       const response = await fetch("http://localhost:3000/channels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newChannelName, creator: username }), // Store creator
+        body: JSON.stringify({ name: newChannelName, creator_id: userid }), // Store creator
       });
 
       if (!response.ok) throw new Error("Failed to create channel");
@@ -47,7 +48,7 @@ const Channels = ({ username, onChannelCLick, onChannelCreate, onChannelDelete, 
       const response = await fetch(`http://localhost:3000/channels/${channelId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username }), // Send username to verify creator
+        body: JSON.stringify({ user_id:userid }), // Send userid to verify creator
       });
 
       if (!response.ok) {
@@ -79,7 +80,7 @@ const Channels = ({ username, onChannelCLick, onChannelCreate, onChannelDelete, 
         {channels.map((channel) => (
           <li key={channel.id}>
             <span onClick={() => onChannelCLick(channel.id)}>{channel.name}</span>
-            {channel.creator === username && (
+            {channel.creator == userid && (
               <button onClick={() => deleteChannel(channel.id)}>Delete</button>
             )}
           </li>

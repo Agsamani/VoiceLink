@@ -27,6 +27,7 @@ const Home = () => {
       });
   
       localStorage.removeItem("username");
+      localStorage.removeItem("userid");
   
       // Ensure state updates before navigation
       setUsername("");

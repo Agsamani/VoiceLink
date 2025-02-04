@@ -4,7 +4,6 @@ const db = require("../db.js");
 const router = express.Router();
 
 // Login
-// Login
 router.post("/login", async (req, res) => {
     const { username } = req.body;
 

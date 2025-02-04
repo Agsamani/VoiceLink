@@ -16,16 +16,17 @@ router.get("/channels", async (req, res) => {
   
 // Create a channel
 router.post("/channels", async (req, res) => {
-    const { name, creator } = req.body;
+    const { name, creator_id } = req.body;
+    console.log(" " + name + " " + creator_id)
 
-    if (!name || !creator) {
+    if (!name || !creator_id) {
         return res.status(400).json({ error: "Missing data" });
     }
 
     try {
         const result = await db.one(
         "INSERT INTO channels (name, creator) VALUES ($1, $2) RETURNING *",
-        [name, creator]
+        [name, creator_id]
         );
         res.json(result);
     } catch (error) {
@@ -42,7 +43,7 @@ router.delete("/channels/:id", async (req, res) => {
         const channel = await db.oneOrNone("SELECT * FROM channels WHERE id = $1", [id]);
 
         if (!channel) return res.status(404).json({ error: "Channel not found" });
-        if (channel.creator !== user_id) return res.status(403).json({ error: "Not authorized" });
+        if (channel.creator != user_id) return res.status(403).json({ error: "Not authorized" });
 
         await db.none("DELETE FROM channels WHERE id = $1", [id]);
         res.json({ message: "Channel deleted" });
