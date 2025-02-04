@@ -107,6 +107,27 @@ app.delete("/channels/:id", async (req, res) => {
   }
 });
 
+// Get all users in a channel
+app.get("/channels/:id/users", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const users = await db.any(
+      "SELECT * FROM users u JOIN channel_participants cp ON u.id = cp.user_id WHERE cp.channel_id = $1",
+      [id]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: "No users found in this channel" });
+    }
+
+    res.json(users);
+  } catch (error) {
+    console.error("Error getting users in channel:", error);
+    res.status(500).json({ success: false, error: "Error fetching users from database" });
+  }
+});
+
 // Join a channel
 app.post("/join-channel", async (req, res) => {
   const { username, channelId } = req.body;
