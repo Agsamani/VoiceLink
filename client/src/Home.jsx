@@ -10,8 +10,11 @@ const Home = () => {
   const [username, setUsername] = useState("");
   const [selectedChannel, setSelectedChannel] = useState(-1);
   const prevChannelRef = useRef(-1);
-  const [channelsUpdated, setChannelsUpdated] = useState(false)
-  const [usersUpdated, setUsersUpdated] = useState(false)
+  const [channelsUpdated, setChannelsUpdated] = useState(false);
+  const [usersUpdated, setUsersUpdated] = useState(false);
+
+  const logoutCallbackRef = useRef(null);
+  
 
   const userid = localStorage.getItem("userid")
 
@@ -19,6 +22,11 @@ const Home = () => {
     if (!username) {
       navigate("/", { replace: true }); // Ensure navigation replaces history
       return;
+    }
+
+    console.log(logoutCallbackRef.current);
+    if(logoutCallbackRef.current) {
+      logoutCallbackRef.current.fn();
     }
   
     try {
@@ -106,7 +114,9 @@ const Home = () => {
                 onChannelLeft={onChannelLeft} 
                 socketRef={socketRef} 
                 channelsUpdated={channelsUpdated} 
-                setChannelsUpdated={setChannelsUpdated}/>
+                setChannelsUpdated={setChannelsUpdated}
+                logoutCallbackRef={logoutCallbackRef}
+                />
     </div>
   );
 };

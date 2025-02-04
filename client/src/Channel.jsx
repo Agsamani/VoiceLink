@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import io from "socket.io-client";
 import User from "./User";
 
-const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, channelsUpdated, setChannelsUpdated }) => {
+const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, channelsUpdated, setChannelsUpdated, logoutCallbackRef }) => {
   const navigate = useNavigate();
   const localStreamRef = useRef(null);
   const peersRef = useRef({});
@@ -11,6 +11,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
 
   const username = localStorage.getItem("username")
   const userid = localStorage.getItem("userid")
+
 
 
   useEffect(() => {
@@ -57,6 +58,18 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
       console.error(err.message);
     } 
   };
+
+  const onLogout = () => {
+    onLeaveChannel(selectedChannel, true);
+    onChannelLeft(selectedChannel);
+  }
+
+  useImperativeHandle(logoutCallbackRef, () => {
+    return {
+      fn: onLogout,
+    }
+  }, []);
+
 
   const onJoinChannel = async (channelId) => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -145,7 +158,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     }
   };
 
-  const onLeaveChannel = async (channelId, gotDeleted = false) => {
+  const onLeaveChannel = async (channelId, sendReq = false) => {
     Object.values(peersRef.current).forEach((peer) => peer.close());
     peersRef.current = {};
     if (localStreamRef.current) {
@@ -167,7 +180,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
       }
     }
 
-    if(!gotDeleted) {
+    if(!sendReq) {
       await sendLeaveReq(channelId);
     }
 
