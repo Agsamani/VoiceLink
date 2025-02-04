@@ -142,16 +142,16 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  socket.on("join-channel", (channel) => {
-    socket.join(channel);
-    console.log(`${socket.id} joined channel: ${channel}`);
-    socket.to(channel).emit("user-joined", { userId: socket.id, channel });
+  socket.on("join-channel", (channelId) => {
+    socket.join(channelId);
+    console.log(`${socket.id} joined channel: ${channelId}`);
+    socket.to(channelId).emit("user-joined", { userId: socket.id, channelId });
   });
 
-  socket.on("leave-channel", (channel) => {
-    socket.leave(channel);
-    console.log(`${socket.id} left channel: ${channel}`);
-    socket.to(channel).emit("user-left", { userId: socket.id, channel });
+  socket.on("leave-channel", (channelId) => {
+    socket.leave(channelId);
+    console.log(`${socket.id} left channel: ${channelId}`);
+    socket.to(channelId).emit("user-left", { userId: socket.id, channelId });
   });
 
   socket.on("voice", ({ channel, data }) => {
