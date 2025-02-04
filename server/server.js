@@ -30,7 +30,7 @@ app.post("/login", async (req, res) => {
     }
 
     console.log({ message: "User logged in", username });
-    res.json({ success: true }); 
+    res.status(200).json({ username: username }); 
   } catch (error) {
     console.error("Error logging in:", error);
     res.status(500).json({ success: false, error: "Database error" });
@@ -48,7 +48,7 @@ app.post("/logout", async (req, res) => {
   try {
     await db.none("DELETE FROM users WHERE username = $1", [username]);
     console.log({ message: "User logged out" });
-    res.json({ success: true }); 
+    res.status(200); 
   } catch (error) {
     console.error("Error logging out:", error);
     res.status(500).json({ success: false, error: "Database error" });
@@ -72,9 +72,9 @@ app.post("/channels", async (req, res) => {
   data = req.body
 
   try {
-    await db.none("INSERT INTO channels(name) VALUES($1)", [data.name]);
-    console.log("New channel inserted: " + data.name);
-    res.send({ success: true }); 
+    const result = await db.one("INSERT INTO channels(name) VALUES($1) RETURNING id", [data.name]);
+    console.log("New channel inserted: " + data.name + " with id " + result.id);
+    res.send({ id: result.id,  name:data.name}); 
   } catch (error) {
     console.error("Error inserting channels:", error);
     res.status(500).json({ success: false, error: "Error creating channel" });
@@ -109,14 +109,25 @@ const io = new Server(server, {cors: {
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  socket.on("voice", (data) => {
-    socket.broadcast.emit("voice", data); // Send voice data to others except sender
+  socket.on("join-channel", (channel) => {
+    socket.join(channel);
+    console.log(`${socket.id} joined channel: ${channel}`);
+    socket.to(channel).emit("user-joined", { userId: socket.id, channel });
+  });
+
+  socket.on("leave-channel", (channel) => {
+    socket.leave(channel);
+    console.log(`${socket.id} left channel: ${channel}`);
+    socket.to(channel).emit("user-left", { userId: socket.id, channel });
+  });
+
+  socket.on("voice", ({ channel, data }) => {
+    socket.to(channel).emit("voice", data);
   });
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected:", socket.id); // disconnect message
+    console.log("A user disconnected:", socket.id);
   });
-
 });
 
 server.listen(3000, () => {

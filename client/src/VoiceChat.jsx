@@ -11,25 +11,25 @@ const VoiceChat = ({ username, setUsername }) => {
     const audioQueueRef = useRef([]);
     const socketRef = useRef(null);
 
-    useEffect(() => {
-        socketRef.current = io("http://localhost:3000");
+    // useEffect(() => {
+    //     socketRef.current = io("http://localhost:3000");
 
-        socketRef.current.on("voice", (data) => {
-            try {
-                if (!sourceBufferRef.current || mediaSourceRef.current.readyState !== 'open') {
-                    audioQueueRef.current.push(new Uint8Array(data));
-                } else {
-                    sourceBufferRef.current.appendBuffer(new Uint8Array(data));
-                }
-            } catch (error) {
-                console.error("Audio handling error:", error);
-            }
-        });
+    //     socketRef.current.on("voice", (data) => {
+    //         try {
+    //             if (!sourceBufferRef.current || mediaSourceRef.current.readyState !== 'open') {
+    //                 audioQueueRef.current.push(new Uint8Array(data));
+    //             } else {
+    //                 sourceBufferRef.current.appendBuffer(new Uint8Array(data));
+    //             }
+    //         } catch (error) {
+    //             console.error("Audio handling error:", error);
+    //         }
+    //     });
 
-        return () => {
-            socketRef.current.disconnect();
-        };
-    }, []);
+    //     return () => {
+    //         socketRef.current.disconnect();
+    //     };
+    // }, []);
 
     const initializeMediaSource = () => {
         if (!mediaSourceRef.current) {
@@ -86,25 +86,25 @@ const VoiceChat = ({ username, setUsername }) => {
         setIsTalking(false);
     };
 
-    const handleLogout = async () => {
-        try {
-            const response = await fetch("http://localhost:3000/logout", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username }),
-            });
+    // const handleLogout = async () => {
+    //     try {
+    //         const response = await fetch("http://localhost:3000/logout", {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({ username }),
+    //         });
 
-            const data = await response.json();
-            if (response.ok && data.success) {
-                setUsername(null); // Navigate back to login
-            } else {
-                alert(data.error || "Logout failed");
-            }
+            // const data = await response.json();
+            // if (response.ok && data.success) {
+            //     setUsername(null); // Navigate back to login
+            // } else {
+            //     alert(data.error || "Logout failed");
+            // }
 
-        } catch (error) {
-            console.error("Logout error:", error);
-        }
-    };
+    //     } catch (error) {
+    //         console.error("Logout error:", error);
+    //     }
+    // };
 
     return (
         <div>

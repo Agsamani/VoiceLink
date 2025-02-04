@@ -1,18 +1,15 @@
-import { useState } from 'react';
-import VoiceChat from './VoiceChat';
-import Login from './Login';
-import Channels from './Channels';
+import { Routes, Route } from "react-router-dom";
+import Login from "./Login";
+import Home from "./Home";
 
 function App() {
-  const [username, setUsername] = useState(null);
 
   return (
     <div className="App">
-      {username ? (
-        <Channels/>//<VoiceChat username={username} setUsername={setUsername} />
-      ) : (
-        <Login setUsername={setUsername} />
-      )}
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/home" element={<Home />} />
+      </Routes>
     </div>
   );
 }

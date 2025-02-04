@@ -1,46 +1,53 @@
-import { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Login = ({ setUsername }) => {
-    const [input, setInput] = useState("");
+const Login = () => {
+  const [name, setName] = useState("");
+  const navigate = useNavigate();
 
-    const handleLogin = async () => {
-        if (!input.trim()) return alert("Enter a username");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        try {
-            const response = await fetch("http://localhost:3000/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: input.trim() }),
-            });
+    if (!name.trim()) return alert("Enter a username");
 
-            const data = await response.json(); // Ensure response is parsed
 
-            if (response.ok && data.success) {
-                setUsername(input.trim());
-            } else {
-                alert(data.error || "Login failed");
-            }
-        } catch (error) {
-            console.error("Login error:", error);
+    try {
+        const response = await fetch("http://localhost:3000/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: name.trim() }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            localStorage.setItem("username", name);
+            navigate("/home");
+        } else {
+            alert(data.error || "Login failed");
+            navigate("/");
         }
-    };
+    } catch (error) {
+        console.error("Login error:", error);
+        navigate("/");
+    }
 
-    return (
-        <div>
-            <h2>Enter your username</h2>
-            <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-            />
-            <button onClick={handleLogin}>Join</button>
-        </div>
-    );
-};
+  };
 
-Login.propTypes = {
-    setUsername: PropTypes.func.isRequired
+  return (
+    <div>
+      <h2>Enter Your Name</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your Name"
+          required
+        />
+        <button type="submit">Join</button>
+      </form>
+    </div>
+  );
 };
 
 export default Login;
