@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import io from "socket.io-client";
+import User from "./User";
 
 const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, channelsUpdated, setChannelsUpdated }) => {
   const navigate = useNavigate();
   const localStreamRef = useRef(null);
   const peersRef = useRef({});
+  const [users, setUsers] = useState([]);
 
   const username = localStorage.getItem("username")
   const userid = localStorage.getItem("userid")
@@ -32,6 +34,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     socketRef.current.on("channel-deleted", handleChannelDeletion);
 
     onJoinChannel(selectedChannel).catch(console.error)
+
     return () => {
       socketRef.current.off("user-joined", handleUserJoined);
       socketRef.current.off("signal", handleSignal);
@@ -40,6 +43,20 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
 
     };
   }, [selectedChannel, navigate]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/channels/${selectedChannel}/users`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch users");
+      }
+      const data = await response.json();
+
+      setUsers(data);
+    } catch (err) {
+      console.error(err.message);
+    } 
+  };
 
   const onJoinChannel = async (channelId) => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -62,8 +79,9 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
 
     await sendJoinReq(channelId);
 
-    socketRef.current.emit("join-channel", channelId);
+    fetchUsers();
 
+    socketRef.current.emit("join-channel", channelId);
   };
 
   const handleUserJoined = async (userId) => {
@@ -89,6 +107,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
     socketRef.current.emit("signal", { to: userId, signal: offer });
+    fetchUsers();
   };
 
   const handleSignal = async (data) => {
@@ -161,6 +180,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
       peersRef.current[userId].close();
       delete peersRef.current[userId];
     }
+    fetchUsers()
   };
 
   const handleChannelDeletion = (channelId) => {
@@ -183,6 +203,10 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
           onLeaveChannel(selectedChannel);
           onChannelLeft(selectedChannel)}
           }>Leave Channel</button>
+        <h3>Users</h3>
+        <ul>
+          {users.map(user => (<li key={user.id}>{user.username}</li>))}
+        </ul>
       </div>
     );
   }

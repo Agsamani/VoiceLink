@@ -25,7 +25,7 @@ const Home = () => {
       await fetch("http://localhost:3000/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ user_id:userid }),
       });
   
       localStorage.removeItem("username");

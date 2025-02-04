@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 
 const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -13,14 +11,11 @@ const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
           throw new Error("Failed to fetch users");
         }
         const data = await response.json();
-        console.log(data)
 
         setUsers(data);
       } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+        console.error(err.message);
+      } 
     };
     
     fetchUsers();
@@ -28,8 +23,6 @@ const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
     setUsersUpdated(false);
   }, [usersUpdated]);
 
-  if (loading) return <p>Loading users...</p>;
-  if (error) return <p>Error: {error}</p>;
   if (users.length === 0) return <p>No users in this channel.</p>;
 
   return (
