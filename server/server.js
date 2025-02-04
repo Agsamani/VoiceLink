@@ -13,7 +13,8 @@ app.get("/", (req, res) => {
   res.send("General Kenobi...");
 });
 
-// Login - Ensure user exists
+// ======================================= Authentication =======================================
+// Login
 app.post("/login", async (req, res) => {
   const { username } = req.body;
 
@@ -36,7 +37,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Logout - Remove from active channels
+// Logout
 app.post("/logout", async (req, res) => {
   const { username } = req.body;
 
@@ -59,6 +60,7 @@ app.post("/logout", async (req, res) => {
   }
 });
 
+// ======================================= Home =======================================
 // Get all channels
 app.get("/channels", async (req, res) => {
   try {
@@ -107,6 +109,7 @@ app.delete("/channels/:id", async (req, res) => {
   }
 });
 
+// ======================================= Audio Channel =======================================
 // Get all users in a channel
 app.get("/channels/:id/users", async (req, res) => {
   const { id } = req.params;
@@ -129,32 +132,74 @@ app.get("/channels/:id/users", async (req, res) => {
 });
 
 // Join a channel
-app.post("/join-channel", async (req, res) => {
-  const { username, channelId } = req.body;
+app.post("/channel/:id/join", async (req, res) => {
+  const { id } = req.params;
+  const { user_id } = req.body;
 
-  if (!username || !channelId) {
-    return res.status(400).json({ error: "Missing data" });
+  if (!user_id) {
+    return res.status(400).json({ error: "User ID is required" });
   }
 
   try {
-    const user = await db.oneOrNone("SELECT id FROM users WHERE username = $1", [username]);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    const user = await db.oneOrNone("SELECT id FROM users WHERE id = $1", [user_id]);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-    // Remove user from any previous channel before joining a new one
-    await db.none("DELETE FROM channel_participants WHERE user_id = $1", [user.id]);
+    const channel = await db.oneOrNone("SELECT id FROM channels WHERE id = $1", [id]);
+    if (!channel) {
+      return res.status(404).json({ error: "Channel not found" });
+    }
 
-    await db.none("INSERT INTO channel_participants (user_id, channel_id) VALUES ($1, $2)", [
-      user.id,
-      channelId,
-    ]);
+    await db.none(
+      "INSERT INTO channel_participants (user_id, channel_id) VALUES ($1, $2)",
+      [user.id, id]
+    );
 
-    res.json({ message: "Joined channel" });
+    res.status(200).json({ message: "User joined the channel" });
   } catch (error) {
+    console.error("Error joining channel:", error);
     res.status(500).json({ error: "Failed to join channel" });
   }
 });
 
-// Socket initialization
+// Leave a channel
+app.post("/channel/:id/leave", async (req, res) => {
+  const { id } = req.params;
+  const { user_id } = req.body;
+
+  if (!user_id) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+
+  try {
+    const user = await db.oneOrNone("SELECT id FROM users WHERE id = $1", [user_id]);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const channel = await db.oneOrNone("SELECT id FROM channels WHERE id = $1", [id]);
+    if (!channel) {
+      return res.status(404).json({ error: "Channel not found" });
+    }
+
+    const result = await db.none(
+      "DELETE FROM channel_participants WHERE user_id = $1 AND channel_id = $2",
+      [user.id, id]
+    );
+
+    if (result === 0) {
+      return res.status(404).json({ error: "User is not part of this channel" });
+    }
+
+    res.status(200).json({ message: "User left the channel" });
+  } catch (error) {
+    console.error("Error leaving channel:", error);
+    res.status(500).json({ error: "Failed to leave channel" });
+  }
+});
+
+// ======================================= Socket Connection =======================================
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
