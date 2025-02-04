@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import Channels from "./Channels";
+import Channel from "./Channel";
 
 const Home = () => {
   const navigate = useNavigate();
   const socketRef = useRef(null);
   const [username, setUsername] = useState("");
+  const [selectedChannel, setSelectedChannel] = useState(-1);
+  const prevChannelRef = useRef(-1);
+
 
   const logout = async () => {
     if (!username) {
@@ -30,6 +34,16 @@ const Home = () => {
       console.error("Logout error:", error);
     }
   };
+
+  const onChannelCLick = (channelId) => {
+    prevChannelRef.current = selectedChannel;
+    setSelectedChannel(channelId);
+  }
+
+  const onChannelLeft = (channelId) => {
+    setSelectedChannel(-1);
+    prevChannelRef.current = -1;
+  }
   
 
   useEffect(() => {
@@ -52,7 +66,8 @@ const Home = () => {
     <div>
       <h2>Welcome, {username}</h2>
       <button onClick={logout}>Logout</button>
-      <Channels username={username} />
+      <Channels username={username} onChannelCLick={onChannelCLick}/>
+      <Channel selectedChannel={selectedChannel} prevChannelRef={prevChannelRef} onChannelLeft={onChannelLeft} socketRef={socketRef}/>
     </div>
   );
 };

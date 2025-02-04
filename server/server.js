@@ -139,29 +139,33 @@ const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+io.on('connection', (socket) => {
+  console.log('A user connected');
 
-  socket.on("join-channel", (channelId) => {
+  socket.on('join-channel', (channelId) => {
     socket.join(channelId);
     console.log(`${socket.id} joined channel: ${channelId}`);
-    socket.to(channelId).emit("user-joined", { userId: socket.id, channelId });
+    socket.broadcast.to(channelId).emit('user-joined', socket.id);
   });
 
-  socket.on("leave-channel", (channelId) => {
+  socket.on('leave-channel', (channelId) => {
     socket.leave(channelId);
     console.log(`${socket.id} left channel: ${channelId}`);
-    socket.to(channelId).emit("user-left", { userId: socket.id, channelId });
+    socket.broadcast.to(channelId).emit('user-left', socket.id);
   });
 
-  socket.on("voice", ({ channel, data }) => {
-    socket.to(channel).emit("voice", data);
+  socket.on('signal', (data) => {
+    socket.broadcast.to(data.to).emit('signal', {
+      from: socket.id,
+      signal: data.signal,
+    });
   });
 
-  socket.on("disconnect", () => {
-    console.log("A user disconnected:", socket.id);
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
   });
 });
+
 
 server.listen(3000, () => {
   console.log("Server running on port 3000");

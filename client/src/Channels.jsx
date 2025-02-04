@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Channels = ({ username }) => {
+const Channels = ({ username, onChannelCLick }) => {
   const [channels, setChannels] = useState([]);
   const [newChannelName, setNewChannelName] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:3000"); // WebSocket for live updates
-
     const fetchChannels = async () => {
       try {
         const response = await fetch("http://localhost:3000/channels");
@@ -20,8 +18,6 @@ const Channels = ({ username }) => {
     };
 
     fetchChannels();
-
-    socket.onmessage = () => fetchChannels(); // Update list on server change
 
     return () => socket.close();
   }, []);
@@ -78,7 +74,7 @@ const Channels = ({ username }) => {
       <ul>
         {channels.map((channel) => (
           <li key={channel.id}>
-            <span onClick={() => navigate(`/channel/${channel.id}`)}>{channel.name}</span>
+            <span onClick={() => onChannelCLick(channel.id)}>{channel.name}</span>
             {channel.creator === username && (
               <button onClick={() => deleteChannel(channel.id)}>Delete</button>
             )}

@@ -2,16 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import io from "socket.io-client";
 
-const Channel = () => {
-  const { channelId } = useParams();
+const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef }) => {
   const navigate = useNavigate();
-  const socketRef = useRef(null);
-  const mediaStreamRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const [isTalking, setIsTalking] = useState(false);
-  const mediaSourceRef = useRef(null);
-  const sourceBufferRef = useRef(null);
-  const audioQueueRef = useRef([]);
+  const localStreamRef = useRef(null);
+  const peersRef = useRef({});
+
 
   useEffect(() => {
     const username = localStorage.getItem("username");
@@ -20,92 +15,121 @@ const Channel = () => {
       return;
     }
 
-    socketRef.current = io("http://localhost:3000");
-    socketRef.current.emit("join-channel", channelId);
-
-    socketRef.current.on("voice", (data) => {
-      try {
-        if (!sourceBufferRef.current || mediaSourceRef.current.readyState !== "open") {
-          audioQueueRef.current.push(new Uint8Array(data));
-        } else {
-          sourceBufferRef.current.appendBuffer(new Uint8Array(data));
-        }
-      } catch (error) {
-        console.error("Audio handling error:", error);
-      }
-    });
-
-    return () => {
-      socketRef.current.emit("leave-channel", channelId);
-      socketRef.current.disconnect();
-      mediaRecorderRef.current?.stop();
-      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-    };
-  }, [channelId, navigate]);
-
-  const initializeMediaSource = () => {
-    if (!mediaSourceRef.current) {
-      mediaSourceRef.current = new MediaSource();
-      const audio = new Audio();
-      audio.src = URL.createObjectURL(mediaSourceRef.current);
-      audio.play();
-
-      mediaSourceRef.current.addEventListener("sourceopen", () => {
-        sourceBufferRef.current = mediaSourceRef.current.addSourceBuffer("audio/webm; codecs=opus");
-        sourceBufferRef.current.addEventListener("updateend", processQueue);
-        processQueue();
-      });
-    }
-  };
-
-  const processQueue = () => {
-    if (!sourceBufferRef.current || sourceBufferRef.current.updating || mediaSourceRef.current.readyState !== "open") {
+    if (selectedChannel == -1) {
       return;
     }
 
-    if (audioQueueRef.current.length > 0) {
-      const data = audioQueueRef.current.shift();
-      sourceBufferRef.current.appendBuffer(data);
+    if (prevChannelRef.current != -1) {
+      onLeaveChannel(prevChannelRef.current);
     }
+
+    socketRef.current.on("user-joined", handleUserJoined);
+    socketRef.current.on("signal", handleSignal);
+    socketRef.current.on("user-left", handleUserLeft);
+
+    onJoinChannel(selectedChannel).catch(console.error)
+    return () => {
+      socketRef.current.off("user-joined", handleUserJoined);
+      socketRef.current.off("signal", handleSignal);
+      socketRef.current.off("user-left", handleUserLeft);
+    };
+  }, [selectedChannel, navigate]);
+
+  const onJoinChannel = async (channelId) => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    localStreamRef.current = stream;
+    socketRef.current.emit("join-channel", channelId);
   };
 
-  const startTalking = async () => {
-    try {
-      mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(mediaStreamRef.current, {
-        mimeType: "audio/webm; codecs=opus",
+  const handleUserJoined = async (userId) => {
+    const peerConnection = new RTCPeerConnection();
+    peersRef.current[userId] = peerConnection;
+
+    localStreamRef.current.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, localStreamRef.current);
+    });
+
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        socketRef.current.emit("signal", { to: userId, signal: event.candidate });
+      }
+    };
+
+    peerConnection.ontrack = (event) => {
+      const audio = new Audio();
+      audio.srcObject = event.streams[0];
+      audio.play();
+    };
+
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socketRef.current.emit("signal", { to: userId, signal: offer });
+  };
+
+  const handleSignal = async (data) => {
+    let peerConnection = peersRef.current[data.from];
+    if (!peerConnection) {
+      peerConnection = new RTCPeerConnection();
+      peersRef.current[data.from] = peerConnection;
+
+      localStreamRef.current.getTracks().forEach((track) => {
+        peerConnection.addTrack(track, localStreamRef.current);
       });
 
-      initializeMediaSource();
-
-      mediaRecorderRef.current.ondataavailable = async (event) => {
-        if (event.data.size > 0) {
-          const buffer = await event.data.arrayBuffer();
-          socketRef.current.emit("voice", { channel: channelId, data: buffer });
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          socketRef.current.emit("signal", { to: data.from, signal: event.candidate });
         }
       };
 
-      mediaRecorderRef.current.start(100);
-      setIsTalking(true);
-    } catch (error) {
-      console.error("Error accessing microphone:", error);
+      peerConnection.ontrack = (event) => {
+        const audio = new Audio();
+        audio.srcObject = event.streams[0];
+        audio.play();
+      };
+    }
+
+    if (data.signal.type === "offer") {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socketRef.current.emit("signal", { to: data.from, signal: answer });
+    } else if (data.signal.type === "answer") {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal));
+    } else if (data.signal.candidate) {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(data.signal));
     }
   };
 
-  const stopTalking = () => {
-    mediaRecorderRef.current?.stop();
-    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-    setIsTalking(false);
+  const onLeaveChannel = (channelId) => {
+    Object.values(peersRef.current).forEach((peer) => peer.close());
+    peersRef.current = {};
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    socketRef.current.emit("leave-channel", channelId);
   };
 
-  return (
-    <div>
-      <h2>Channel {channelId}</h2>
-      <button onClick={startTalking} disabled={isTalking}>Start Talking</button>
-      <button onClick={stopTalking} disabled={!isTalking}>Stop Talking</button>
-      <button onClick={() => navigate("/home")}>Leave Channel</button>
-    </div>
-  );
+  const handleUserLeft = (userId) => {
+    if (peersRef.current[userId]) {
+      peersRef.current[userId].close();
+      delete peersRef.current[userId];
+    }
+  };
+
+  if (selectedChannel == -1) {
+    return <div>Select a channel</div>
+  } else {
+    return (
+      <div>
+        <h2>Channel {selectedChannel}</h2>
+        <button onClick={() => {
+          onLeaveChannel(selectedChannel);
+          onChannelLeft(selectedChannel)}
+          }>Leave Channel</button>
+      </div>
+    );
+  }
 };
 
 export default Channel;

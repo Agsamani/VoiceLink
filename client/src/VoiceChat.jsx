@@ -1,125 +1,93 @@
-import { useEffect, useState, useRef } from 'react';
-import io from 'socket.io-client';
-import PropTypes from 'prop-types';
+import { useEffect, useRef, useState } from "react";
+import io from "socket.io-client";
 
-const VoiceChat = ({ username, setUsername }) => {
-    const [isTalking, setIsTalking] = useState(false);
-    const mediaStreamRef = useRef(null);
-    const mediaRecorderRef = useRef(null);
-    const mediaSourceRef = useRef(null);
-    const sourceBufferRef = useRef(null);
-    const audioQueueRef = useRef([]);
-    const socketRef = useRef(null);
+const socket = io("http://localhost:3000");
 
-    // useEffect(() => {
-    //     socketRef.current = io("http://localhost:3000");
+export default function VoiceChat() {
+  const [joined, setJoined] = useState(false);
+  const localStreamRef = useRef(null);
+  const peersRef = useRef({});
+  
+  useEffect(() => {
+    socket.on("user-joined", handleUserJoined);
+    socket.on("signal", handleSignal);
+    return () => {
+      socket.off("user-joined", handleUserJoined);
+      socket.off("signal", handleSignal);
+    };
+  }, []);
 
-    //     socketRef.current.on("voice", (data) => {
-    //         try {
-    //             if (!sourceBufferRef.current || mediaSourceRef.current.readyState !== 'open') {
-    //                 audioQueueRef.current.push(new Uint8Array(data));
-    //             } else {
-    //                 sourceBufferRef.current.appendBuffer(new Uint8Array(data));
-    //             }
-    //         } catch (error) {
-    //             console.error("Audio handling error:", error);
-    //         }
-    //     });
+  const joinRoom = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    localStreamRef.current = stream;
+    setJoined(true);
+    socket.emit("join-channel", "voice-chat-room");
+  };
 
-    //     return () => {
-    //         socketRef.current.disconnect();
-    //     };
-    // }, []);
+  const handleUserJoined = async (userId) => {
+    const peerConnection = new RTCPeerConnection();
+    peersRef.current[userId] = peerConnection;
 
-    // const initializeMediaSource = () => {
-    //     if (!mediaSourceRef.current) {
-    //         mediaSourceRef.current = new MediaSource();
-    //         const audio = new Audio();
-    //         audio.src = URL.createObjectURL(mediaSourceRef.current);
-    //         audio.play();
+    localStreamRef.current.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, localStreamRef.current);
+    });
 
-    //         mediaSourceRef.current.addEventListener('sourceopen', () => {
-    //             sourceBufferRef.current = mediaSourceRef.current.addSourceBuffer('audio/webm; codecs=opus');
-    //             sourceBufferRef.current.addEventListener('updateend', processQueue);
-    //             processQueue();
-    //         });
-    //     }
-    // };
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit("signal", { to: userId, signal: event.candidate });
+      }
+    };
 
-    // const processQueue = () => {
-    //     if (!sourceBufferRef.current || sourceBufferRef.current.updating || mediaSourceRef.current.readyState !== 'open') {
-    //         return;
-    //     }
+    peerConnection.ontrack = (event) => {
+      const audio = new Audio();
+      audio.srcObject = event.streams[0];
+      audio.play();
+    };
 
-    //     if (audioQueueRef.current.length > 0) {
-    //         const data = audioQueueRef.current.shift();
-    //         sourceBufferRef.current.appendBuffer(data);
-    //     }
-    // };
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit("signal", { to: userId, signal: offer });
+  };
 
-    // const startTalking = async () => {
-    //     try {
-    //         mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
-    //         mediaRecorderRef.current = new MediaRecorder(mediaStreamRef.current, {
-    //             mimeType: 'audio/webm; codecs=opus'
-    //         });
+  const handleSignal = async (data) => {
+    let peerConnection = peersRef.current[data.from];
+    if (!peerConnection) {
+      peerConnection = new RTCPeerConnection();
+      peersRef.current[data.from] = peerConnection;
 
-    //         initializeMediaSource();
+      localStreamRef.current.getTracks().forEach((track) => {
+        peerConnection.addTrack(track, localStreamRef.current);
+      });
 
-    //         mediaRecorderRef.current.ondataavailable = async (event) => {
-    //             if (event.data.size > 0) {
-    //                 const buffer = await event.data.arrayBuffer();
-    //                 socketRef.current.emit("voice", buffer);
-    //             }
-    //         };
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit("signal", { to: data.from, signal: event.candidate });
+        }
+      };
 
-    //         mediaRecorderRef.current.start(100);
-    //         setIsTalking(true);
-    //     } catch (error) {
-    //         console.error("Error accessing microphone:", error);
-    //     }
-    // };
+      peerConnection.ontrack = (event) => {
+        const audio = new Audio();
+        audio.srcObject = event.streams[0];
+        audio.play();
+      };
+    }
 
-    // const stopTalking = () => {
-    //     mediaRecorderRef.current.stop();
-    //     mediaStreamRef.current.getTracks().forEach(track => track.stop());
-    //     setIsTalking(false);
-    // };
+    if (data.signal.type === "offer") {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit("signal", { to: data.from, signal: answer });
+    } else if (data.signal.type === "answer") {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.signal));
+    } else if (data.signal.candidate) {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(data.signal));
+    }
+  };
 
-    // const handleLogout = async () => {
-    //     try {
-    //         const response = await fetch("http://localhost:3000/logout", {
-    //             method: "POST",
-    //             headers: { "Content-Type": "application/json" },
-    //             body: JSON.stringify({ username }),
-    //         });
-
-            // const data = await response.json();
-            // if (response.ok && data.success) {
-            //     setUsername(null); // Navigate back to login
-            // } else {
-            //     alert(data.error || "Logout failed");
-            // }
-
-    //     } catch (error) {
-    //         console.error("Logout error:", error);
-    //     }
-    // };
-
-    return (
-        <div>
-            <h1>Live Voice Chat</h1>
-            <p>Logged in as: <strong>{username}</strong></p>
-            <button onClick={startTalking} disabled={isTalking}>Start Talking</button>
-            <button onClick={stopTalking} disabled={!isTalking}>Stop Talking</button>
-            <button onClick={handleLogout}>Logout</button>
-        </div>
-    );
-};
-
-VoiceChat.propTypes = {
-    username: PropTypes.string.isRequired,
-    setUsername: PropTypes.func.isRequired,
-};
-
-export default VoiceChat;
+  return (
+    <div className="p-4">
+      <h1 className="text-xl font-bold">WebRTC Voice Chat</h1>
+      {!joined && <button className="mt-4 p-2 bg-blue-500 text-white" onClick={joinRoom}>Join Chat</button>}
+    </div>
+  );
+}
