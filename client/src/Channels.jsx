@@ -5,6 +5,7 @@ const Channels = ({ onChannelClick }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newChannelName, setNewChannelName] = useState(""); 
+  const [prevChannelId, setPrevChannelId] = useState(-1)
 
   useEffect(() => {
     fetchChannels();
@@ -80,7 +81,10 @@ const Channels = ({ onChannelClick }) => {
       <ul>
         {channels.map((channel) => (
           <li key={channel.id}>
-            <span onClick={() => onChannelClick(channel.id)}>
+            <span onClick={() => {
+              onChannelClick(channel.id, prevChannelId);
+              setPrevChannelId(channel.id);
+            }}>
               {channel.name}
             </span>
             <button onClick={() => deleteChannel(channel.id)}>Delete</button>

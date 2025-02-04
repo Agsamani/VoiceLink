@@ -31,60 +31,60 @@ const VoiceChat = ({ username, setUsername }) => {
     //     };
     // }, []);
 
-    const initializeMediaSource = () => {
-        if (!mediaSourceRef.current) {
-            mediaSourceRef.current = new MediaSource();
-            const audio = new Audio();
-            audio.src = URL.createObjectURL(mediaSourceRef.current);
-            audio.play();
+    // const initializeMediaSource = () => {
+    //     if (!mediaSourceRef.current) {
+    //         mediaSourceRef.current = new MediaSource();
+    //         const audio = new Audio();
+    //         audio.src = URL.createObjectURL(mediaSourceRef.current);
+    //         audio.play();
 
-            mediaSourceRef.current.addEventListener('sourceopen', () => {
-                sourceBufferRef.current = mediaSourceRef.current.addSourceBuffer('audio/webm; codecs=opus');
-                sourceBufferRef.current.addEventListener('updateend', processQueue);
-                processQueue();
-            });
-        }
-    };
+    //         mediaSourceRef.current.addEventListener('sourceopen', () => {
+    //             sourceBufferRef.current = mediaSourceRef.current.addSourceBuffer('audio/webm; codecs=opus');
+    //             sourceBufferRef.current.addEventListener('updateend', processQueue);
+    //             processQueue();
+    //         });
+    //     }
+    // };
 
-    const processQueue = () => {
-        if (!sourceBufferRef.current || sourceBufferRef.current.updating || mediaSourceRef.current.readyState !== 'open') {
-            return;
-        }
+    // const processQueue = () => {
+    //     if (!sourceBufferRef.current || sourceBufferRef.current.updating || mediaSourceRef.current.readyState !== 'open') {
+    //         return;
+    //     }
 
-        if (audioQueueRef.current.length > 0) {
-            const data = audioQueueRef.current.shift();
-            sourceBufferRef.current.appendBuffer(data);
-        }
-    };
+    //     if (audioQueueRef.current.length > 0) {
+    //         const data = audioQueueRef.current.shift();
+    //         sourceBufferRef.current.appendBuffer(data);
+    //     }
+    // };
 
-    const startTalking = async () => {
-        try {
-            mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorderRef.current = new MediaRecorder(mediaStreamRef.current, {
-                mimeType: 'audio/webm; codecs=opus'
-            });
+    // const startTalking = async () => {
+    //     try {
+    //         mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+    //         mediaRecorderRef.current = new MediaRecorder(mediaStreamRef.current, {
+    //             mimeType: 'audio/webm; codecs=opus'
+    //         });
 
-            initializeMediaSource();
+    //         initializeMediaSource();
 
-            mediaRecorderRef.current.ondataavailable = async (event) => {
-                if (event.data.size > 0) {
-                    const buffer = await event.data.arrayBuffer();
-                    socketRef.current.emit("voice", buffer);
-                }
-            };
+    //         mediaRecorderRef.current.ondataavailable = async (event) => {
+    //             if (event.data.size > 0) {
+    //                 const buffer = await event.data.arrayBuffer();
+    //                 socketRef.current.emit("voice", buffer);
+    //             }
+    //         };
 
-            mediaRecorderRef.current.start(100);
-            setIsTalking(true);
-        } catch (error) {
-            console.error("Error accessing microphone:", error);
-        }
-    };
+    //         mediaRecorderRef.current.start(100);
+    //         setIsTalking(true);
+    //     } catch (error) {
+    //         console.error("Error accessing microphone:", error);
+    //     }
+    // };
 
-    const stopTalking = () => {
-        mediaRecorderRef.current.stop();
-        mediaStreamRef.current.getTracks().forEach(track => track.stop());
-        setIsTalking(false);
-    };
+    // const stopTalking = () => {
+    //     mediaRecorderRef.current.stop();
+    //     mediaStreamRef.current.getTracks().forEach(track => track.stop());
+    //     setIsTalking(false);
+    // };
 
     // const handleLogout = async () => {
     //     try {
