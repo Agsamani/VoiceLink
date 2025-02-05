@@ -11,10 +11,16 @@ const authRoutes = require('./routes/auth.js');
 const homeRoutes = require('./routes/home.js');
 const channelRoutes = require('./routes/channel.js');
 
+const socketIdMap = {};
+
 // Test route
 app.get("/", (req, res) => {
   console.log("Hello there!");
   res.send("General Kenobi...");
+});
+
+app.get("/socketmaps", (req, res) => {
+  res.json(socketIdMap)
 });
 
 app.use('', authRoutes);
@@ -26,6 +32,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
+
 
 io.on('connection', (socket) => {
   console.log('A user connected');
@@ -59,6 +66,9 @@ io.on('connection', (socket) => {
     io.emit('channel-deleted', channelId);
   })
 
+  socket.on('logged-in', (userId) => {
+    socketIdMap[userId] = socket.id;
+  })
 
   socket.on('disconnect', () => {
     console.log('A user disconnected');

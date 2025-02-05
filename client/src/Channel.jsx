@@ -8,6 +8,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   const localStreamRef = useRef(null);
   const peersRef = useRef({});
   const [users, setUsers] = useState([]);
+  const socketMapRef = useRef({})
 
   const username = localStorage.getItem("username")
   const userid = localStorage.getItem("userid")
@@ -52,8 +53,20 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
         throw new Error("Failed to fetch users");
       }
       const data = await response.json();
-
+      console.log(data)
       setUsers(data);
+    } catch (err) {
+      console.error(err.message);
+    } 
+
+    try {
+      const response = await fetch(`http://localhost:3000/socketmaps`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch users");
+      }
+      const data = await response.json();
+      console.log(data)
+      socketMapRef.current = data;
     } catch (err) {
       console.error(err.message);
     } 
@@ -163,6 +176,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     peersRef.current = {};
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
+      localStreamRef.current = null;
     }
 
     const sendLeaveReq = async (channelId) => {
@@ -206,6 +220,28 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     
   }
 
+  const muteUser = (userId) => {
+    const socketId = socketMapRef.current[userId];
+    if (peersRef.current[socketId]) {
+
+      const audioTracks = peersRef.current[socketId].getReceivers()
+        .map(receiver => receiver.track)
+        .filter(track => track.kind === "audio");
+  
+      audioTracks.forEach(track => {
+        track.enabled = !track.enabled; // Toggle mute
+      });
+    }
+  };
+
+  const muteSelf = () => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach(track => {
+        track.enabled = !track.enabled; // Toggle mute
+      });
+    }
+  };  
+
   if (selectedChannel == -1) {
     return <div>Select a channel</div>
   } else {
@@ -218,8 +254,9 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
           }>Leave Channel</button>
         <h3>Users</h3>
         <ul>
-          {users.map(user => (<li key={user.id}>{user.username}</li>))}
+          {users.map(user => (<li key={user.id}><User userid={user.id} username={user.username} onMuteUser={muteUser}/></li>))}
         </ul>
+        <button onClick={() => {muteSelf()}}>Mute Me!</button>
       </div>
     );
   }

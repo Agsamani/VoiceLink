@@ -24,7 +24,6 @@ const Home = () => {
       return;
     }
 
-    console.log(logoutCallbackRef.current);
     if(logoutCallbackRef.current) {
       logoutCallbackRef.current.fn();
     }
@@ -89,6 +88,8 @@ const Home = () => {
     socketRef.current.on("users-updated", () => {
       setUsersUpdated(true);
     });
+
+    socketRef.current.emit("logged-in", userid);
   
     return () => {
       socketRef.current.disconnect();
