@@ -1,6 +1,6 @@
 import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import User from "./User";
 
 const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, channelsUpdated, setChannelsUpdated, logoutCallbackRef }) => {
@@ -88,6 +88,27 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   const onJoinChannel = async (channelId) => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     localStreamRef.current = stream;
+
+    const audioContext = new AudioContext();
+    const source = audioContext.createMediaStreamSource(localStreamRef.current);
+    const analyser = audioContext.createAnalyser();
+    source.connect(analyser);
+    analyser.fftSize = 512;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    const checkVolume = () => {
+      analyser.getByteFrequencyData(dataArray);
+      const volume = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+
+      setUsersVolume(prev => ({
+        ...prev,
+        [socketRef.current.id]: volume
+      }));
+      requestAnimationFrame(checkVolume);
+    };
+
+    checkVolume();
 
     const sendJoinReq = async (channelId) => {
       try {
@@ -278,8 +299,6 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   };
 
   const muteSelf = () => {
-    console.log(usersVolume)
-
     if (localStreamRef.current) {
       localStreamRef.current.getAudioTracks().forEach(track => {
         track.enabled = !track.enabled; // Toggle mute
@@ -312,7 +331,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
           <ul className="list-group">
             {users.map(user => (
               <li key={user.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <User userid={user.id} username={user.username} onMuteUser={muteUser} volume={usersVolume[socketMapRef[user.id]]} />
+                <User userid={user.id} username={user.username} onMuteUser={muteUser} volume={usersVolume[socketMapRef.current[user.id]]} />
               </li>
             ))}
           </ul>
