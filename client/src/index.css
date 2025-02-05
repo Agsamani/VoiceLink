@@ -29,6 +29,7 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  margin-bottom: 5px;
 }
 
 .channel-name-li{
@@ -44,7 +45,7 @@ body {
 
 .users-btn{
   margin-top: 12px;
-  max-width: 70%;
+  max-width: 100%;
 }
 
 .channel-users-div{
@@ -52,19 +53,30 @@ body {
   flex-direction: column;
 }
 
-.flex-end{
-  display: flex;
-  justify-content: right;
-}
-
 .is-talking {
   border: 5px solid #238c34 !important; 
+  border-radius: 50%;
   box-sizing: border-box !important;;
 }
 
 .user-boxes {
   width: 100%; 
-  max-width: 300px;
-  min-height: 50px;
-  border: 5px solid #238c34 transparent !important; 
+}
+
+.user-channel{
+  margin-left: 10px;
+}
+
+.user-info{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.width-100{
+  width: 100%;
+}
+
+.items-up{
+
 }

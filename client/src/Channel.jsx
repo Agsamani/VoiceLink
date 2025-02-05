@@ -370,29 +370,31 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
       <div className="card mt-3 border border-dark rounded">
         <div className="card-header channel-header my-purple text-white">
           <h2 className="mb-0">{selectedChannelName}</h2>
-          <button className="btn btn-warning" onClick={() => {
-            onLeaveChannel(selectedChannel);
-            onChannelLeft(selectedChannel);
-          }}>
-            Leave Channel
-          </button>
         </div>
         <div className="card-body">
-          <h3 className="mt-3">Users</h3>
+          <h3 className="">Users</h3>
           <ul className="list-group">
             {users.map(user => (
-              <li key={user.id} className="list-group-item d-flex justify-content-between align-items-center">
+              <li key={user.id} className="list-group-item d-flex justify-content-between align-items-center mb-3 border rounded">
                 <User userid={user.id} username={user.username} onMuteUser={muteUser} volume={usersVolume[socketMapRef.current[user.id]]} />
               </li>
             ))}
           </ul>
-
-          <button className="btn btn-dark mt-3" onClick={() => {
-            muteSelf();
-            setMuted(!muted)
-          }}>
-            {!muted ? "Mute Me!" : "Unmute Me!"}
-          </button>
+          
+          <div className="channel-header">
+            <button className="btn btn-dark" onClick={() => {
+              muteSelf();
+              setMuted(!muted)
+            }}>
+              {!muted ? "Mute Me!" : "Unmute Me!"}
+            </button>
+            <button className="btn btn-warning" onClick={() => {
+              onLeaveChannel(selectedChannel);
+              onChannelLeft(selectedChannel);
+            }}>
+              Leave Channel
+            </button>
+          </div>
         </div>
       </div>
     );

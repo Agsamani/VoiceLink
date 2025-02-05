@@ -83,12 +83,12 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
         {channels.map((channel) => (
           <li key={channel.id} className="list-group-item d-flex justify-content-between align-items-center mb-3 border rounded">
             <div className="channel-name-li col-md-8">
-              <span className="fw-bold text-primary" style={{ cursor: "pointer" }} onClick={() => {
+              <p className="fw-bold text-primary" style={{ cursor: "pointer" }} onClick={() => {
                     onChannelCLick(channel.id);
                     setSelectedChannelName(channel.name);
                     }}>
                 {channel.name}
-              </span>
+              </p>
               {channel.creator == userid && (
                 <button className="btn btn-danger btn-sm delete-btn mb-2" onClick={() => deleteChannel(channel.id)}>
                   Delete
@@ -96,6 +96,7 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
               )}
             </div>
             <div className="col-md-4">
+              <ChannelUsers channelId={channel.id} usersUpdated={usersUpdated} setUsersUpdated={setUsersUpdated} />
             </div>
           </li>
         ))}

@@ -30,13 +30,13 @@ const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
 
   return (
     <div className="channel-users-div">
-      <div className="flex-end">
-        <button className="btn btn-primary btn-sm mt-2 mb-2 users-btn" onClick={toggleVisibility}>
+      <div>
+        <button className="btn btn-primary btn-sm mt-2 mb-2 users-btn w-100" onClick={toggleVisibility}>
           {isVisible ? "Hide Users" : "Show Users"}
         </button>
       </div>
       {isVisible && (
-        <div className="card ">
+        <div className="card bg-light">
         <ul className="list-group list-group-flush mx-auto justify-content-center">
           {users.map((user) => (
             <li key={user.id} className="list-group-item border-0 m-0 py-1 px-2">
