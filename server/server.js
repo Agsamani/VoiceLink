@@ -4,7 +4,7 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 const authRoutes = require('./routes/auth.js');
@@ -30,7 +30,7 @@ app.use('', channelRoutes);
 // ======================================= Socket Connection =======================================
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] },
+  cors: { origin: "*" },
 });
 
 
@@ -76,6 +76,6 @@ io.on('connection', (socket) => {
 });
 
 
-server.listen(3000, () => {
+server.listen(3000, "0.0.0.0", () => {
   console.log("Server running on port 3000");
 });

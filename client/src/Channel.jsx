@@ -133,7 +133,10 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   };
 
   const handleUserJoined = async (userId) => {
-    const peerConnection = new RTCPeerConnection();
+    const peerConnection = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
+    
     peersRef.current[userId] = peerConnection;
 
     localStreamRef.current.getTracks().forEach((track) => {
@@ -182,7 +185,10 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   const handleSignal = async (data) => {
     let peerConnection = peersRef.current[data.from];
     if (!peerConnection) {
-      peerConnection = new RTCPeerConnection();
+      peerConnection = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+      });
+      
       peersRef.current[data.from] = peerConnection;
 
       localStreamRef.current.getTracks().forEach((track) => {

@@ -6,7 +6,7 @@ const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/channels/${channelId}/users`);
+        const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/channels/${channelId}/users`);
         if (!response.ok) {
           throw new Error("Failed to fetch users");
         }
