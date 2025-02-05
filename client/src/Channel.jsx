@@ -8,7 +8,8 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   const localStreamRef = useRef(null);
   const peersRef = useRef({});
   const [users, setUsers] = useState([]);
-  const socketMapRef = useRef({})
+  const socketMapRef = useRef({});
+  const [usersVolume, setUsersVolume] = useState({});
 
   const username = localStorage.getItem("username")
   const userid = localStorage.getItem("userid")
@@ -128,6 +129,27 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
       const audio = new Audio();
       audio.srcObject = event.streams[0];
       audio.play();
+
+      const audioContext = new AudioContext();
+        const source = audioContext.createMediaStreamSource(event.streams[0]);
+        const analyser = audioContext.createAnalyser();
+        source.connect(analyser);
+        analyser.fftSize = 512;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        const checkVolume = () => {
+          analyser.getByteFrequencyData(dataArray);
+          const volume = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+
+          setUsersVolume(prev => ({
+            ...prev,
+            [userId]: volume
+          }));
+          requestAnimationFrame(checkVolume);
+        };
+
+        checkVolume();
     };
 
     const offer = await peerConnection.createOffer();
@@ -156,7 +178,28 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
         const audio = new Audio();
         audio.srcObject = event.streams[0];
         audio.play();
-      };
+
+        const audioContext = new AudioContext();
+        const source = audioContext.createMediaStreamSource(event.streams[0]);
+        const analyser = audioContext.createAnalyser();
+        source.connect(analyser);
+        analyser.fftSize = 512;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        const checkVolume = () => {
+          analyser.getByteFrequencyData(dataArray);
+          const volume = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+
+          setUsersVolume(prev => ({
+            ...prev,
+            [data.from]: volume
+          }));
+          requestAnimationFrame(checkVolume);
+        };
+
+        checkVolume();
+        };
     }
 
     if (data.signal.type === "offer") {
@@ -235,6 +278,8 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   };
 
   const muteSelf = () => {
+    console.log(usersVolume)
+
     if (localStreamRef.current) {
       localStreamRef.current.getAudioTracks().forEach(track => {
         track.enabled = !track.enabled; // Toggle mute
@@ -254,7 +299,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
           }>Leave Channel</button>
         <h3>Users</h3>
         <ul>
-          {users.map(user => (<li key={user.id}><User userid={user.id} username={user.username} onMuteUser={muteUser}/></li>))}
+          {users.map(user => (<li key={user.id}><User userid={user.id} username={user.username} onMuteUser={muteUser} volume={usersVolume[socketMapRef[user.id]]}/></li>))}
         </ul>
         <button onClick={() => {muteSelf()}}>Mute Me!</button>
       </div>
