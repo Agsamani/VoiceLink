@@ -362,7 +362,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
 
   if (selectedChannel == -1) {
     return <div className="card mt-3 border border-dark rounded">
-      <div className="card-header bg-primary text-white">
+      <div className="card-header channel-header my-purple text-white">
           <h2 className="mb-0"> Channel </h2>
       </div>
       <div className="alert alert-info text-center m-5">Select a channel</div>
@@ -370,17 +370,16 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   } else {
     return (
       <div className="card mt-3 border border-dark rounded">
-        <div className="card-header bg-primary text-white">
+        <div className="card-header channel-header my-purple text-white">
           <h2 className="mb-0"> Channel: {selectedChannel}</h2>
-        </div>
-        <div className="card-body">
           <button className="btn btn-warning" onClick={() => {
             onLeaveChannel(selectedChannel);
             onChannelLeft(selectedChannel);
           }}>
             Leave Channel
           </button>
-
+        </div>
+        <div className="card-body">
           <h3 className="mt-3">Users</h3>
           <ul className="list-group">
             {users.map(user => (

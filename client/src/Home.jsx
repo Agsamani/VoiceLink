@@ -103,7 +103,7 @@ const Home = () => {
         flexDirection: "row",
         justifyContent: "space-between"
       }}>
-        <h2 className="mb-4">Welcome, {username}</h2>
+        <h1 className="">Welcome, {username}</h1>
       
         <button className="btn btn-danger mb-3" onClick={logout}>
           Logout
@@ -111,7 +111,7 @@ const Home = () => {
       </div>
 
       <div className="row">
-        <div className="col-md-4">
+        <div className="col-md-6 mt-3 bg-light border border-dark rounded">
           <Channels
             username={username}
             onChannelCLick={onChannelCLick}
@@ -123,7 +123,7 @@ const Home = () => {
             setUsersUpdated={setUsersUpdated}
           />
         </div>
-        <div className="col-md-8 mt-10">
+        <div className="col-md-6 mt-10">
           <Channel
             selectedChannel={selectedChannel}
             prevChannelRef={prevChannelRef}

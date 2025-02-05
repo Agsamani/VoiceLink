@@ -67,7 +67,7 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
 
   return (
     <div className="container mt-3">
-      <h2 className="text-primary">Channels</h2>
+      <h2 className="text-dark mt-3 mb-3">Channels Section</h2>
 
       <div className="input-group mb-3">
         <input
@@ -77,23 +77,25 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
           value={newChannelName}
           onChange={(e) => setNewChannelName(e.target.value)}
         />
-        <button className="btn btn-success" onClick={createChannel}>Add Channel</button>
+        <button className="btn my-purple" onClick={createChannel}>Add Channel</button>
       </div>
 
       <ul className="list-group">
         {channels.map((channel) => (
-          <li key={channel.id} className="list-group-item d-flex justify-content-between align-items-center">
-            <span className="fw-bold text-primary" style={{ cursor: "pointer" }} onClick={() => onChannelCLick(channel.id)}>
-              {channel.name}
-            </span>
-            <div>
+          <li key={channel.id} className="list-group-item d-flex justify-content-between align-items-center mb-3 border rounded">
+            <div className="channel-name-li col-md-8">
+              <span className="fw-bold text-primary" style={{ cursor: "pointer" }} onClick={() => onChannelCLick(channel.id)}>
+                {channel.name}
+              </span>
               {channel.creator == userid && (
-                <button className="btn btn-danger btn-sm ms-2" onClick={() => deleteChannel(channel.id)}>
+                <button className="btn btn-danger btn-sm delete-btn mb-2" onClick={() => deleteChannel(channel.id)}>
                   Delete
                 </button>
               )}
             </div>
-            <ChannelUsers channelId={channel.id} usersUpdated={usersUpdated} setUsersUpdated={setUsersUpdated} />
+            <div className="col-md-4">
+              <ChannelUsers channelId={channel.id} usersUpdated={usersUpdated} setUsersUpdated={setUsersUpdated} />
+            </div>
           </li>
         ))}
       </ul>

@@ -23,22 +23,32 @@ const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
     setUsersUpdated(false);
   }, [usersUpdated]);
 
-  if (users.length === 0) return <p>No users in this channel.</p>;
+  // State to manage the visibility of the users list
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Function to toggle visibility
+  const toggleVisibility = () => {
+    setIsVisible(!isVisible);
+  };
 
   return (
-    <div className="card mt-3">
-      <div className="card-header bg-secondary text-white">
-        <h6 className="mb-0">Users in Channel {channelId}</h6>
+    <div className="channel-users-div">
+      <div className="flex-end">
+        <button className="btn btn-primary btn-sm mt-2 mb-2 users-btn" onClick={toggleVisibility}>
+          {isVisible ? "Hide Users" : "Show Users"}
+        </button>
       </div>
-      <div className="card-body">
+      {isVisible && (
+        <div className="card ">
         <ul className="list-group">
-          {users.map(user => (
-            <li key={user.id} className="list-group-item">
+          {users.map((user) => (
+            <li key={user.id} className="list-group-item border-0 m-0">
               {user.username}
             </li>
           ))}
         </ul>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
