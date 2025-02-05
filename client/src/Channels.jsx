@@ -12,7 +12,7 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
   useEffect(() => {
     const fetchChannels = async () => {
       try {
-        const response = await fetch("http://localhost:3000/channels");
+        const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/channels`);
         const data = await response.json();
         setChannels(data);
       } catch (error) {
@@ -28,7 +28,7 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
   const createChannel = async () => {
     if (!newChannelName.trim()) return alert("Channel name cannot be empty");
     try {
-      const response = await fetch("http://localhost:3000/channels", {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/channels`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newChannelName, creator_id: userid }), // Store creator
@@ -46,7 +46,7 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
 
   const deleteChannel = async (channelId) => {
     try {
-      const response = await fetch(`http://localhost:3000/channels/${channelId}`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/channels/${channelId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id:userid }), // Send userid to verify creator

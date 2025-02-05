@@ -25,7 +25,7 @@ const Home = () => {
     }
   
     try {
-      await fetch("http://localhost:3000/logout", {
+      await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/logout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id:userid }),
@@ -73,7 +73,7 @@ const Home = () => {
     }
   
     setUsername(storedUsername);
-    socketRef.current = io("http://localhost:3000");
+    socketRef.current = io(`${import.meta.env.VITE_SERVER_ADDRESS}`);
 
     socketRef.current.on("channel-created", () => {
         setChannelsUpdated(true);

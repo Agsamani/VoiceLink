@@ -45,11 +45,12 @@ services:
       mode: replicated
     environment:
       - WATCHPACK_POLLING=true
+      - VITE_SERVER_ADDRESS=http://localhost:3000
     volumes:
       - ./client:/usr/src/app
       - /usr/src/app/node_modules
-    depends_on:
-      - server
+    # depends_on:
+    #   - server
 
 volumes:
   postgres_data:

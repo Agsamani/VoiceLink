@@ -49,7 +49,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/channels/${selectedChannel}/users`);
+      const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/channels/${selectedChannel}/users`);
       if (!response.ok) {
         throw new Error("Failed to fetch users");
       }
@@ -61,7 +61,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     } 
 
     try {
-      const response = await fetch(`http://localhost:3000/socketmaps`);
+      const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/socketmaps`);
       if (!response.ok) {
         throw new Error("Failed to fetch users");
       }
@@ -112,7 +112,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
 
     const sendJoinReq = async (channelId) => {
       try {
-        const response = await fetch(`http://localhost:3000/channel/${channelId}/join`, {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/channel/${channelId}/join`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ user_id: userid })
@@ -245,7 +245,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
 
     const sendLeaveReq = async (channelId) => {
       try {
-        const response = await fetch(`http://localhost:3000/channel/${channelId}/leave`, {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_ADDRESS}/channel/${channelId}/leave`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ user_id: userid })

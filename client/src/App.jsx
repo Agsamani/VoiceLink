@@ -3,6 +3,7 @@ import Login from "./Login";
 import Home from "./Home";
 
 function App() {
+  console.log(import.meta.env.VITE_SERVER_ADDRESS)
   return (
     <div className="App">
       <Routes>
