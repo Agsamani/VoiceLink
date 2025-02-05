@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./Login";
 import Home from "./Home";
-import Channel from "./Channel";
 
 function App() {
   return (

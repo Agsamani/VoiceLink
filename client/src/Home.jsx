@@ -38,7 +38,6 @@ const Home = () => {
       localStorage.removeItem("username");
       localStorage.removeItem("userid");
   
-      // Ensure state updates before navigation
       setUsername("");
       setTimeout(() => navigate("/", { replace: true }), 100); 
     } catch (error) {
@@ -49,22 +48,20 @@ const Home = () => {
   const onChannelCLick = async (channelId) => {
     prevChannelRef.current = selectedChannel;
     setSelectedChannel(channelId);
-  }
+  };
 
   const onChannelLeft = async (channelId) => {
     setSelectedChannel(-1);
     prevChannelRef.current = -1;
-  }
+  };
 
   const onChannelCreate = () => {
     socketRef.current.emit("create-channel");
-  }
+  };
 
   const onChannelDelete = (channelId) => {
     socketRef.current.emit("delete-channel", channelId);
-  } 
-
-  
+  };
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
@@ -79,7 +76,7 @@ const Home = () => {
 
     socketRef.current.on("channel-created", () => {
         setChannelsUpdated(true);
-    })
+    });
 
     socketRef.current.on("channel-deleted", () => {
       setChannelsUpdated(true);
@@ -97,27 +94,44 @@ const Home = () => {
   }, [username, navigate]);
 
   return (
-    <div>
-      <h2>Welcome, {username}</h2>
-      <button onClick={logout}>Logout</button>
-      <Channels username={username} 
-                onChannelCLick={onChannelCLick} 
-                onChannelCreate = {onChannelCreate} 
-                onChannelDelete = {onChannelDelete} 
-                channelsUpdated={channelsUpdated} 
-                setChannelsUpdated={setChannelsUpdated}
-                usersUpdated={usersUpdated}
-                setUsersUpdated={setUsersUpdated}
-                />
-      <Channel 
-                selectedChannel={selectedChannel} 
-                prevChannelRef={prevChannelRef} 
-                onChannelLeft={onChannelLeft} 
-                socketRef={socketRef} 
-                channelsUpdated={channelsUpdated} 
-                setChannelsUpdated={setChannelsUpdated}
-                logoutCallbackRef={logoutCallbackRef}
-                />
+    <div className="container mt-5">
+      <div style={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between"
+      }}>
+        <h2 className="mb-4">Welcome, {username}</h2>
+      
+        <button className="btn btn-danger mb-3" onClick={logout}>
+          Logout
+        </button>
+      </div>
+
+      <div className="row">
+        <div className="col-md-4">
+          <Channels
+            username={username}
+            onChannelCLick={onChannelCLick}
+            onChannelCreate={onChannelCreate}
+            onChannelDelete={onChannelDelete}
+            channelsUpdated={channelsUpdated}
+            setChannelsUpdated={setChannelsUpdated}
+            usersUpdated={usersUpdated}
+            setUsersUpdated={setUsersUpdated}
+          />
+        </div>
+        <div className="col-md-8 mt-10">
+          <Channel
+            selectedChannel={selectedChannel}
+            prevChannelRef={prevChannelRef}
+            onChannelLeft={onChannelLeft}
+            socketRef={socketRef}
+            channelsUpdated={channelsUpdated}
+            setChannelsUpdated={setChannelsUpdated}
+            logoutCallbackRef={logoutCallbackRef}
+          />
+        </div>
+      </div>
     </div>
   );
 };

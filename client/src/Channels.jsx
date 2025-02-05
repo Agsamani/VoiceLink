@@ -66,25 +66,34 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
   };
 
   return (
-    <div>
-      <h2>Channels</h2>
+    <div className="container mt-3">
+      <h2 className="text-primary">Channels</h2>
 
-      <input
-        type="text"
-        placeholder="Enter channel name"
-        value={newChannelName}
-        onChange={(e) => setNewChannelName(e.target.value)}
-      />
-      <button onClick={createChannel}>Add Channel</button>
+      <div className="input-group mb-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Enter channel name"
+          value={newChannelName}
+          onChange={(e) => setNewChannelName(e.target.value)}
+        />
+        <button className="btn btn-success" onClick={createChannel}>Add Channel</button>
+      </div>
 
-      <ul>
+      <ul className="list-group">
         {channels.map((channel) => (
-          <li key={channel.id}>
-            <span onClick={() => onChannelCLick(channel.id)}>{channel.name}</span>
-            {channel.creator == userid && (
-              <button onClick={() => deleteChannel(channel.id)}>Delete</button>
-            )}
-            <ChannelUsers channelId={channel.id} usersUpdated={usersUpdated} setUsersUpdated={setUsersUpdated}/>
+          <li key={channel.id} className="list-group-item d-flex justify-content-between align-items-center">
+            <span className="fw-bold text-primary" style={{ cursor: "pointer" }} onClick={() => onChannelCLick(channel.id)}>
+              {channel.name}
+            </span>
+            <div>
+              {channel.creator == userid && (
+                <button className="btn btn-danger btn-sm ms-2" onClick={() => deleteChannel(channel.id)}>
+                  Delete
+                </button>
+              )}
+            </div>
+            <ChannelUsers channelId={channel.id} usersUpdated={usersUpdated} setUsersUpdated={setUsersUpdated} />
           </li>
         ))}
       </ul>

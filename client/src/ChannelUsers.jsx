@@ -26,13 +26,19 @@ const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
   if (users.length === 0) return <p>No users in this channel.</p>;
 
   return (
-    <div>
-      <h3>Users in Channel {channelId}</h3>
-      <ul>
-        {users.map(user => (
-          <li key={user.id}>{user.username}</li>
-        ))}
-      </ul>
+    <div className="card mt-3">
+      <div className="card-header bg-secondary text-white">
+        <h6 className="mb-0">Users in Channel {channelId}</h6>
+      </div>
+      <div className="card-body">
+        <ul className="list-group">
+          {users.map(user => (
+            <li key={user.id} className="list-group-item">
+              {user.username}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };
