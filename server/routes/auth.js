@@ -12,14 +12,16 @@ router.post("/login", async (req, res) => {
     }
 
     try {
-        let user = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [username]);
+        const user = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [username]);
 
-        if (!user) {
-        user = await db.one("INSERT INTO users (username) VALUES ($1) RETURNING *", [username]);
+        if (user) {
+            return res.status(400).json({ success: false, error: "Username already exists" });
         }
 
-        console.log({ message: "User logged in", username });
-        res.status(200).json({ user_id: user.id , username: user.username });
+        const newUser = await db.one("INSERT INTO users (username) VALUES ($1) RETURNING *", [username]);
+        console.log({ message: "User created and logged in", username: newUser.username });
+        res.status(200).json({ user_id: newUser.id, username: newUser.username });
+
     } catch (error) {
         console.error("Error logging in:", error);
         res.status(500).json({ success: false, error: "Database error" });
