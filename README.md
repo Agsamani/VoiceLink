@@ -28,13 +28,23 @@ This project provides the functionality to create and manage voice channels (Voi
 1. **Clone the repository**:
    ```bash 
    git clone https://github.com/Agsamani/VoiceLink.git
+   ```
 2. **Run Docker Compose command in the main folder of project**
     
     in order to build images and run 3 clients in 3 different ports run:
     ```bash
     docker-compose up --build --scale client=3
+    ```
 3. **Get client ports**
 
     run this command in a new terminal to get client servers ports
     ```bash
     docker ps
+    ```
+## Connecting to a remote server
+
+  If you are running the server on a remote machine, you can set the server url by setting the environment variable ```VITE_SERVER_ADDRESS```when running the client. for example:
+  ```bash
+  docker compose run -p 5173:5173 -e VITE_SERVER_ADDRESS=http://remote.server.url client
+  ```
+  will run client as an standalone container that connects to ```http://remote.server.url```.

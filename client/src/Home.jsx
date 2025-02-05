@@ -9,6 +9,8 @@ const Home = () => {
   const socketRef = useRef(null);
   const [username, setUsername] = useState("");
   const [selectedChannel, setSelectedChannel] = useState(-1);
+  const [selectedChannelName, setSelectedChannelName] = useState("");
+
   const prevChannelRef = useRef(-1);
   const [channelsUpdated, setChannelsUpdated] = useState(false);
   const [usersUpdated, setUsersUpdated] = useState(false);
@@ -121,6 +123,7 @@ const Home = () => {
             setChannelsUpdated={setChannelsUpdated}
             usersUpdated={usersUpdated}
             setUsersUpdated={setUsersUpdated}
+            setSelectedChannelName={setSelectedChannelName}
           />
         </div>
         <div className="col-md-6 mt-10">
@@ -132,6 +135,7 @@ const Home = () => {
             channelsUpdated={channelsUpdated}
             setChannelsUpdated={setChannelsUpdated}
             logoutCallbackRef={logoutCallbackRef}
+            selectedChannelName={selectedChannelName}
           />
         </div>
       </div>

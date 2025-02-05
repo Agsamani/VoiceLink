@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
   const [users, setUsers] = useState([]);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -23,10 +24,6 @@ const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
     setUsersUpdated(false);
   }, [usersUpdated]);
 
-  // State to manage the visibility of the users list
-  const [isVisible, setIsVisible] = useState(false);
-
-  // Function to toggle visibility
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
   };
@@ -40,9 +37,9 @@ const ChannelUsers = ({ channelId, usersUpdated, setUsersUpdated }) => {
       </div>
       {isVisible && (
         <div className="card ">
-        <ul className="list-group">
+        <ul className="list-group list-group-flush mx-auto justify-content-center">
           {users.map((user) => (
-            <li key={user.id} className="list-group-item border-0 m-0">
+            <li key={user.id} className="list-group-item border-0 m-0 py-1 px-2">
               {user.username}
             </li>
           ))}

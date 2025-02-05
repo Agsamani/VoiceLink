@@ -36,7 +36,7 @@ const Login = () => {
   return (
     <div className="container d-flex flex-column justify-content-center align-items-center vh-100">
       <div className="text-center mb-4">
-        <h1 className="fw-bold">Welcome to Dingulvoice!!</h1>
+        <h1 className="fw-bold">Welcome to VoiceLink!!</h1>
       </div>
       <div className="card p-4 shadow-lg" style={{ width: "350px" }}>
         <h2 className="text-center mb-3">Enter Your Name</h2>

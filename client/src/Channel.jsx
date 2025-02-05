@@ -3,13 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import User from "./User";
 
-const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, channelsUpdated, setChannelsUpdated, logoutCallbackRef }) => {
+const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, channelsUpdated, setChannelsUpdated, logoutCallbackRef, selectedChannelName }) => {
   const navigate = useNavigate();
   const localStreamRef = useRef(null);
   const peersRef = useRef({});
   const [users, setUsers] = useState([]);
   const socketMapRef = useRef({});
   const [usersVolume, setUsersVolume] = useState({});
+  const [muted, setMuted] = useState(false);
 
   const username = localStorage.getItem("username")
   const userid = localStorage.getItem("userid")
@@ -179,25 +180,25 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
       audio.play();
 
       const audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(event.streams[0]);
-        const analyser = audioContext.createAnalyser();
-        source.connect(analyser);
-        analyser.fftSize = 512;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        
-        const checkVolume = () => {
-          analyser.getByteFrequencyData(dataArray);
-          const volume = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+      const source = audioContext.createMediaStreamSource(event.streams[0]);
+      const analyser = audioContext.createAnalyser();
+      source.connect(analyser);
+      analyser.fftSize = 512;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      const checkVolume = () => {
+        analyser.getByteFrequencyData(dataArray);
+        const volume = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
 
-          setUsersVolume(prev => ({
-            ...prev,
-            [userId]: volume
-          }));
-          requestAnimationFrame(checkVolume);
-        };
+        setUsersVolume(prev => ({
+          ...prev,
+          [userId]: volume
+        }));
+        requestAnimationFrame(checkVolume);
+      };
 
-        checkVolume();
+      checkVolume();
     };
 
     const offer = await peerConnection.createOffer();
@@ -274,7 +275,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
         };
 
         checkVolume();
-        };
+      };
     }
 
     if (data.signal.type === "offer") {
@@ -347,7 +348,7 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
         .filter(track => track.kind === "audio");
   
       audioTracks.forEach(track => {
-        track.enabled = !track.enabled; // Toggle mute
+        track.enabled = !track.enabled; 
       });
     }
   };
@@ -355,23 +356,20 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
   const muteSelf = () => {
     if (localStreamRef.current) {
       localStreamRef.current.getAudioTracks().forEach(track => {
-        track.enabled = !track.enabled; // Toggle mute
+        track.enabled = !track.enabled; 
       });
     }
   };  
 
   if (selectedChannel == -1) {
     return <div className="card mt-3 border border-dark rounded">
-      <div className="card-header channel-header my-purple text-white">
-          <h2 className="mb-0"> Channel </h2>
-      </div>
       <div className="alert alert-info text-center m-5">Select a channel</div>
     </div>
   } else {
     return (
       <div className="card mt-3 border border-dark rounded">
         <div className="card-header channel-header my-purple text-white">
-          <h2 className="mb-0"> Channel: {selectedChannel}</h2>
+          <h2 className="mb-0">{selectedChannelName}</h2>
           <button className="btn btn-warning" onClick={() => {
             onLeaveChannel(selectedChannel);
             onChannelLeft(selectedChannel);
@@ -389,8 +387,11 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
             ))}
           </ul>
 
-          <button className="btn btn-dark mt-3" onClick={() => muteSelf()}>
-            Mute Me!
+          <button className="btn btn-dark mt-3" onClick={() => {
+            muteSelf();
+            setMuted(!muted)
+          }}>
+            {!muted ? "Mute Me!" : "Unmute Me!"}
           </button>
         </div>
       </div>

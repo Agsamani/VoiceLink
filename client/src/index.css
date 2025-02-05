@@ -56,3 +56,15 @@ body {
   display: flex;
   justify-content: right;
 }
+
+.is-talking {
+  border: 5px solid #238c34 !important; 
+  box-sizing: border-box !important;;
+}
+
+.user-boxes {
+  width: 100%; 
+  max-width: 300px;
+  min-height: 50px;
+  border: 5px solid #238c34 transparent !important; 
+}

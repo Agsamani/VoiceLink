@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChannelUsers from "./ChannelUsers";
 
-const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUpdated, setChannelsUpdated, usersUpdated, setUsersUpdated }) => {
+const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUpdated, setChannelsUpdated, usersUpdated, setUsersUpdated, setSelectedChannelName }) => {
   const [channels, setChannels] = useState([]);
   const [newChannelName, setNewChannelName] = useState("");
-  const navigate = useNavigate();
   const username = localStorage.getItem("username")
   const userid = localStorage.getItem("userid")
 
@@ -67,7 +66,7 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
 
   return (
     <div className="container mt-3">
-      <h2 className="text-dark mt-3 mb-3">Channels Section</h2>
+      <h2 className="text-dark mt-3 mb-3">Channels</h2>
 
       <div className="input-group mb-3">
         <input
@@ -77,14 +76,17 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
           value={newChannelName}
           onChange={(e) => setNewChannelName(e.target.value)}
         />
-        <button className="btn my-purple" onClick={createChannel}>Add Channel</button>
+        <button className="btn my-purple" onClick={createChannel}>+</button>
       </div>
 
       <ul className="list-group">
         {channels.map((channel) => (
           <li key={channel.id} className="list-group-item d-flex justify-content-between align-items-center mb-3 border rounded">
             <div className="channel-name-li col-md-8">
-              <span className="fw-bold text-primary" style={{ cursor: "pointer" }} onClick={() => onChannelCLick(channel.id)}>
+              <span className="fw-bold text-primary" style={{ cursor: "pointer" }} onClick={() => {
+                    onChannelCLick(channel.id);
+                    setSelectedChannelName(channel.name);
+                    }}>
                 {channel.name}
               </span>
               {channel.creator == userid && (
@@ -94,7 +96,6 @@ const Channels = ({ onChannelCLick, onChannelCreate, onChannelDelete, channelsUp
               )}
             </div>
             <div className="col-md-4">
-              <ChannelUsers channelId={channel.id} usersUpdated={usersUpdated} setUsersUpdated={setUsersUpdated} />
             </div>
           </li>
         ))}
