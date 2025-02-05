@@ -23,10 +23,6 @@ const Home = () => {
       navigate("/", { replace: true }); // Ensure navigation replaces history
       return;
     }
-
-    if(logoutCallbackRef.current) {
-      logoutCallbackRef.current.fn();
-    }
   
     try {
       await fetch("http://localhost:3000/logout", {
@@ -34,6 +30,11 @@ const Home = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id:userid }),
       });
+
+      
+      if(logoutCallbackRef.current) {
+        logoutCallbackRef.current.fn(selectedChannel);
+      }
   
       localStorage.removeItem("username");
       localStorage.removeItem("userid");
@@ -83,6 +84,8 @@ const Home = () => {
     });
 
     socketRef.current.on("users-updated", () => {
+    console.log(usersUpdated)
+
       setUsersUpdated(true);
     });
 

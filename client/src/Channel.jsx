@@ -73,9 +73,9 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     } 
   };
 
-  const onLogout = () => {
-    onLeaveChannel(selectedChannel, true);
-    onChannelLeft(selectedChannel);
+  const onLogout = (channelId) => {
+    onLeaveChannel(channelId, true);
+    onChannelLeft(channelId);
   }
 
   useImperativeHandle(logoutCallbackRef, () => {
