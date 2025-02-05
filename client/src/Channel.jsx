@@ -134,11 +134,31 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
 
   const handleUserJoined = async (userId) => {
     const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" },  {
-        url: 'turn:turn.anyfirewall.com:443?transport=tcp',
-        credential: 'webrtc',
-        username: 'webrtc'
-    }]
+      iceServers: [
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80",
+        username: "7ce81935d242e7f994cfe57c",
+        credential: "aSNziaS/IDwOKr8i",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "7ce81935d242e7f994cfe57c",
+        credential: "aSNziaS/IDwOKr8i",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "7ce81935d242e7f994cfe57c",
+        credential: "aSNziaS/IDwOKr8i",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "7ce81935d242e7f994cfe57c",
+        credential: "aSNziaS/IDwOKr8i",
+      },
+  ],
     });
     
     peersRef.current[userId] = peerConnection;
@@ -190,11 +210,31 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     let peerConnection = peersRef.current[data.from];
     if (!peerConnection) {
       peerConnection = new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" },  {
-          url: 'turn:turn.anyfirewall.com:443?transport=tcp',
-          credential: 'webrtc',
-          username: 'webrtc'
-      }]
+        iceServers: [
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80",
+        username: "7ce81935d242e7f994cfe57c",
+        credential: "aSNziaS/IDwOKr8i",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "7ce81935d242e7f994cfe57c",
+        credential: "aSNziaS/IDwOKr8i",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "7ce81935d242e7f994cfe57c",
+        credential: "aSNziaS/IDwOKr8i",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "7ce81935d242e7f994cfe57c",
+        credential: "aSNziaS/IDwOKr8i",
+      },
+      ],
       });
       
       peersRef.current[data.from] = peerConnection;
