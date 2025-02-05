@@ -134,7 +134,11 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
 
   const handleUserJoined = async (userId) => {
     const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" },  {
+        url: 'turn:turn.anyfirewall.com:443?transport=tcp',
+        credential: 'webrtc',
+        username: 'webrtc'
+    }]
     });
     
     peersRef.current[userId] = peerConnection;
@@ -186,7 +190,11 @@ const Channel = ({ selectedChannel, prevChannelRef, onChannelLeft, socketRef, ch
     let peerConnection = peersRef.current[data.from];
     if (!peerConnection) {
       peerConnection = new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" },  {
+          url: 'turn:turn.anyfirewall.com:443?transport=tcp',
+          credential: 'webrtc',
+          username: 'webrtc'
+      }]
       });
       
       peersRef.current[data.from] = peerConnection;
